@@ -1334,8 +1334,9 @@
         const isUpstreamDeleted = repo.status === 'upstream-deleted';
 
         let statusBadge = '';
-        const compareUrl = `https://github.com/${encFullName}/compare`;
-        const commitsUrl = `https://github.com/${encFullName}/commits/${encBranch}`;
+        const compareUrl = `${safeHtmlUrl}/compare`;
+        const branchUrl = `${safeHtmlUrl}/tree/${encBranch}`;
+        const releaseUrl = `${safeHtmlUrl}/releases`;
 
         if (excluded) {
           statusBadge = `
@@ -1351,26 +1352,22 @@
             </span>`;
         } else if (isConflict) {
           statusBadge = `
-            <a href="${compareUrl}" target="_blank" class="badge-btn px-2.5 py-1 text-xs rounded-full bg-amber-500/15 text-amber-300 hover:bg-amber-500/25 border border-amber-500/30 font-medium inline-flex items-center space-x-1.5 transition shadow-sm" title="点击跳转查看代码冲突详情">
+            <a href="${compareUrl}" target="_blank" class="badge-btn px-2.5 py-1 text-xs rounded-full bg-amber-500/15 text-amber-300 hover:bg-amber-500/25 border border-amber-500/30 font-medium inline-flex items-center space-x-1.5 transition shadow-sm" title="点击跳转查看与上游代码冲突详情">
               <i class="fa-solid fa-shield-halved text-[10px]"></i>
               <span>冲突安全保护</span>
               <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-amber-400/80"></i>
             </a>`;
         } else {
           statusBadge = `
-            <a href="${commitsUrl}" target="_blank" class="badge-btn px-2.5 py-1 text-xs rounded-full bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25 border border-emerald-500/30 font-medium inline-flex items-center space-x-1.5 transition shadow-sm" title="点击跳转查看我的 Fork 最新 Commit">
+            <span class="badge-btn px-2.5 py-1 text-xs rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-medium inline-flex items-center space-x-1.5 shadow-sm" title="当前 Fork 分支已与上游完全同步，无落后提交">
               <i class="fa-solid fa-check text-[10px]"></i>
               <span>已是最新</span>
-              <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-emerald-400/80"></i>
-            </a>`;
+            </span>`;
         }
 
-        const releaseUrl = `https://github.com/${encFullName}/releases`;
         const tagBadge = repo.version && repo.version !== 'Git HEAD'
           ? `<a href="${releaseUrl}" target="_blank" class="badge-btn px-2 py-0.5 text-xs rounded bg-dark-900 text-gray-300 hover:text-white border border-gray-700 font-mono text-[11px] inline-flex items-center space-x-1 hover:border-emerald-500 transition"><i class="fa-solid fa-tag text-[9px] text-emerald-400"></i><span>${escapeHtml(repo.version)}</span><i class="fa-solid fa-arrow-up-right-from-square text-[8px] text-gray-500"></i></a>`
           : `<span class="px-2 py-0.5 text-xs rounded bg-dark-900/60 text-gray-500 border border-gray-800 font-mono text-[11px]">Git HEAD</span>`;
-
-        const branchUrl = `https://github.com/${encFullName}/tree/${encBranch}`;
 
         return `
           <div class="glass-card rounded-2xl p-5 flex flex-col justify-between space-y-4">
