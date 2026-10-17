@@ -52,24 +52,33 @@ async function getForks() {
     page++;
   }
 
-  // 并行获取每个 Fork 对应的上游 Parent 信息，加速执行
-  const detailedForks = await Promise.all(forks.map(async (fork) => {
-    try {
-      const detailRes = await fetch(
-        `https://api.github.com/repos/${fork.full_name}`,
-        { headers }
-      );
-      if (detailRes.ok) {
-        const detail = await detailRes.json();
-        fork.parent_full_name = detail.parent ? detail.parent.full_name : '未知上游';
-      } else {
+  // 分批并发获取上游 Parent 信息，防止用户 Fork 过多时触发 GitHub 突发请求二级限流 (Secondary Rate Limit)
+  const detailedForks = [];
+  const batchSize = 6;
+  for (let i = 0; i < forks.length; i += batchSize) {
+    const batch = forks.slice(i, i + batchSize);
+    const batchResults = await Promise.all(batch.map(async (fork) => {
+      try {
+        const detailRes = await fetch(
+          `https://api.github.com/repos/${fork.full_name}`,
+          { headers }
+        );
+        if (detailRes.ok) {
+          const detail = await detailRes.json();
+          fork.parent_full_name = detail.parent ? detail.parent.full_name : '未知上游';
+        } else {
+          fork.parent_full_name = '未知上游';
+        }
+      } catch {
         fork.parent_full_name = '未知上游';
       }
-    } catch {
-      fork.parent_full_name = '未知上游';
+      return fork;
+    }));
+    detailedForks.push(...batchResults);
+    if (i + batchSize < forks.length) {
+      await new Promise(r => setTimeout(r, 150));
     }
-    return fork;
-  }));
+  }
 
   return detailedForks;
 }
@@ -106,7 +115,7 @@ function shouldSync(repo) {
 async function syncFork(repo) {
   const fullName = repo.full_name;
   const parent = repo.parent_full_name;
-  const branch = repo.default_branch;
+  const branch = repo.default_branch || 'main';
 
   const check = shouldSync(repo);
   if (!check.sync) {
@@ -236,6 +245,8 @@ async function main() {
     for (const fork of forks) {
       const res = await syncFork(fork);
       results.push(res);
+      // 安全缓冲间隔，平滑保护 GitHub API 配额
+      await new Promise((r) => setTimeout(r, 250));
     }
 
     console.log("\n==========================================");
