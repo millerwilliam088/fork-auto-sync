@@ -42,13 +42,3 @@ jobs:
           SYNC_TOKEN: ${{ secrets.SYNC_TOKEN }}
           TARGET_REPO: ${{ inputs.target_repo }}
           DRY_RUN: ${{ inputs.dry_run }}
-
-      - name: Commit and Push Status
-        run: |
-          git config --local user.email "184799977+waw666waw666@users.noreply.github.com"
-          git config --local user.name "waw666waw666"
-          if [ -f public/status.json ]; then
-            git add public/status.json
-            git commit -m "chore(sync): update public/status.json [skip ci]" || echo "No changes to commit"
-            git push
-          fi
