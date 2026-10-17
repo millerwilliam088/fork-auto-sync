@@ -404,14 +404,33 @@
     }
 
     // 核心安全验证函数
-    async function verifyAndUnlock(tokenToTry) {
+    async function verifyAndUnlock(tokenToTry, isAutoLogin = false) {
       const token = (tokenToTry || '').trim();
       if (!token) return false;
 
+      // 如果是自动免密登录，立即隐藏锁屏直接展示控制台，实现 0 秒开！
+      if (isAutoLogin) {
+        document.getElementById('auth-lock-screen').style.display = 'none';
+        document.getElementById('main-dashboard-app').classList.remove('hidden');
+        document.getElementById('main-dashboard-app').classList.add('flex');
+        
+        // 如果有缓存的卡片数据，先秒速画出来
+        const cachedData = localStorage.getItem('forksync_cached_forks');
+        if (cachedData) {
+          try {
+            allForks = JSON.parse(cachedData);
+            renderList();
+            updateStats();
+          } catch (_) {}
+        }
+      }
+
       const unlockBtn = document.getElementById('btn-unlock');
       const originalBtnHtml = unlockBtn.innerHTML;
-      unlockBtn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i><span>正在验证安全密钥...</span>`;
-      unlockBtn.disabled = true;
+      if (!isAutoLogin) {
+        unlockBtn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i><span>正在验证安全密钥...</span>`;
+        unlockBtn.disabled = true;
+      }
 
       try {
         const userRes = await fetch('https://api.github.com/user', {
@@ -426,8 +445,10 @@
         const userData = await userRes.json();
         currentUser = userData;
 
-        // 验证通过！保存凭证并展示主界面
+        // 验证通过！持久化保存
         saveToken(token);
+        localStorage.setItem('forksync_user_login', userData.login || 'waw666waw666');
+        localStorage.setItem('forksync_user_avatar', userData.avatar_url || '');
 
         document.getElementById('user-avatar').src = userData.avatar_url || '';
         document.getElementById('user-login').textContent = userData.login || 'waw666waw666';
@@ -437,20 +458,29 @@
         document.getElementById('main-dashboard-app').classList.remove('hidden');
         document.getElementById('main-dashboard-app').classList.add('flex');
 
-        showToast(`欢迎回来，${userData.login}！已安全解锁`, 'success');
+        if (!isAutoLogin) {
+          showToast(`欢迎回来，${userData.login}！已安全解锁`, 'success');
+        }
 
         // 安全加载用户的 7 个真实 Fork 数据
         loadForkData(token);
         return true;
       } catch (err) {
+        if (isAutoLogin) {
+          // 自动登录失败（说明 Token 被注销了），重新拉起锁屏
+          document.getElementById('auth-lock-screen').style.display = 'flex';
+          document.getElementById('main-dashboard-app').classList.add('hidden');
+        }
         const lockCard = document.getElementById('lock-card');
         lockCard.classList.add('shake-animation');
         setTimeout(() => lockCard.classList.remove('shake-animation'), 500);
         showToast(err.message, 'error');
         return false;
       } finally {
-        unlockBtn.innerHTML = originalBtnHtml;
-        unlockBtn.disabled = false;
+        if (!isAutoLogin) {
+          unlockBtn.innerHTML = originalBtnHtml;
+          unlockBtn.disabled = false;
+        }
       }
     }
 
@@ -524,6 +554,7 @@
         }));
 
         allForks = detailedForks;
+        localStorage.setItem('forksync_cached_forks', JSON.stringify(detailedForks));
         renderList();
         updateStats();
       } catch (err) {
@@ -795,7 +826,7 @@
       // 检查当前设备是否已经有保存的安全凭证
       const savedToken = getToken() || sessionStorage.getItem(STORAGE_KEY_TOKEN);
       if (savedToken) {
-        verifyAndUnlock(savedToken);
+        verifyAndUnlock(savedToken, true);
       }
 
       document.getElementById('btn-unlock').addEventListener('click', () => {
