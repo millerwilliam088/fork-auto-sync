@@ -1,0 +1,7 @@
+{
+  "description": "Fork 自动同步配置文件。修改此文件可控制哪些 Fork 自动同步、哪些跳过。",
+  "exclude": [
+    "example-repo-to-skip"
+  ],
+  "only": []
+}

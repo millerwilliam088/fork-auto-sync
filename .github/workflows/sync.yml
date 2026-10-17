@@ -4,13 +4,23 @@ on:
   schedule:
     # 每天 UTC 00:00 和 12:00（即北京时间 08:00 和 20:00）自动检查同步
     - cron: '0 0,12 * * *'
-  # 支持随时在网页端或手机 GitHub App 上点击“Run workflow”立即同步
+  # 支持随时在 GitHub 网页端点击“Run workflow”立即同步
   workflow_dispatch:
+    inputs:
+      target_repo:
+        description: '同步目标（输入 ALL 同步全部 Fork，或输入单个仓库名如 rea）'
+        required: false
+        default: 'ALL'
+      dry_run:
+        description: '仅预览检查（不真正合并）'
+        type: boolean
+        required: false
+        default: false
 
 jobs:
   sync-forks:
     runs-on: ubuntu-latest
-    name: Sync All Forked Repositories
+    name: Sync Forked Repositories
 
     steps:
       - name: Checkout Code
@@ -25,3 +35,5 @@ jobs:
         run: node sync.mjs
         env:
           SYNC_TOKEN: ${{ secrets.SYNC_TOKEN }}
+          TARGET_REPO: ${{ inputs.target_repo }}
+          DRY_RUN: ${{ inputs.dry_run }}
