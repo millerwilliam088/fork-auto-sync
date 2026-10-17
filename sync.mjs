@@ -18,7 +18,7 @@ async function getForks() {
 
   while (true) {
     const res = await fetch(
-      `https://api.github.com/user/repos?type=forks&per_page=100&page=${page}`,
+      `https://api.github.com/user/repos?per_page=100&page=${page}`,
       { headers }
     );
     if (!res.ok) {
@@ -26,7 +26,9 @@ async function getForks() {
     }
     const data = await res.json();
     if (!data || data.length === 0) break;
-    forks.push(...data);
+    // 严格过滤出真正的 Fork 仓库
+    const actualForks = data.filter((r) => r.fork === true);
+    forks.push(...actualForks);
     page++;
   }
 
