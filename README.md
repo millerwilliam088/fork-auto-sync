@@ -25,7 +25,6 @@
 </p>
 
 <p align="center">
-  <a href="#why-forksync-hub-comparison-matrix">Why ForkSync Hub?</a> •
   <a href="#overview">Overview</a> •
   <a href="#user-interface">User Interface</a> •
   <a href="#system-architecture">System Architecture</a> •
@@ -40,21 +39,6 @@
 ---
 
 </div>
-
-## Why ForkSync Hub? (Comparison Matrix)
-
-| Feature / Dimension | Manual Web Clicking | Local Script / Self-Hosted VPS | Third-Party SaaS Platforms | **ForkSync Hub (This Project)** |
-| :--- | :---: | :---: | :---: | :---: |
-| **Infrastructure Cost** | Free (High manual labor) | Monthly cloud server fees | Paid tiers & quota caps | **100% Serverless (Zero Cost, Pure GitHub)** |
-| **Automation Level** | 0% (Manual click per repo) | Requires self-hosted cron daemons | Automated | **Fully Automated (GitHub Actions Cron)** |
-| **Token Leakage Risk** | Low (Official web session) | Plaintext credentials on VPS disk | **Critical Risk (Token stored on SaaS)** | **Zero-Trust (Local-only + Libsodium Encrypted)** |
-| **Custom Code Shield** | Risk of manual misclick | Force-merge risks code loss | Black-box execution | **Conflict Shield (Never overwrites diverged commits)** |
-| **Dead Upstream Safety**| Upstream 404 breaks UI | Script crashes or errors out | Silent failure | **Archival Shield (Marks upstream 404 as standalone mirror)** |
-| **Visual Dashboard** | Fragmented across repos | Terminal CLI only | Proprietary closed UI | **Zero-Install Web Dashboard (Ready to use)** |
-| **Batch Exclude/Lock** | Not supported | Requires hardcoding arrays | Paid enterprise feature | **One-click Web Toggle & Instant Commit** |
-| **Rate-Limit Resilience** | N/A | Burst calls easily trigger bans | Unknown backoff | **Batch Concurrency + Cool-down Buffering** |
-
----
 
 ## Overview
 
@@ -128,9 +112,11 @@ flowchart TD
 | **Visual Management Dashboard** | Engineering-grade Obsidian dark interface (`#0b0f19`) displaying tracking branches, release tags, upstream status, and last synced timestamps in real time. |
 | **Client-Side Zero-Trust Model** | Personal Access Tokens (PAT) are stored solely within client-side browser storage and communicate exclusively with `https://api.github.com`. No relay or proxy servers are utilized. |
 | **Dynamic Schedule Control** | Interactive selection of synchronization intervals (e.g., Every 2 hours, Every 6 hours, Twice daily, Daily at 09:00 UTC+8). Settings are committed directly to `.github/workflows/sync.yml`. |
+| **Conflict Shield & Preservation** | Non-destructive merging strictly rejects conflicting branches (HTTP 409) to guarantee personal custom commits are never overwritten or force-pushed. |
 | **Upstream Deletion Safeguard** | Automated verification of upstream repository status. If an upstream repository is deleted or made private (HTTP 404), the system locks synchronization to preserve the local fork as an immutable independent archive. |
 | **Dual-Track Execution Pipeline** | **Direct Merge**: Client-side single-repository merge via GitHub's `merge-upstream` endpoint with real-time streaming execution logs.<br/>**Cloud Batch**: Workflow dispatch triggering GitHub Actions runner with status polling and runtime duration calculation. |
 | **Granular Rule Filtering** | Configurable repository filtering via `config.json` supporting targeted inclusion and explicit exclusion to protect customized branches. |
+| **Rate-Limit Safe Concurrency** | Throttled batch processing and per-repository cool-down intervals shield the user account against GitHub secondary rate limit triggers. |
 | **Responsive Design & Accessibility** | Cross-platform layout optimization across desktop, tablet, and mobile devices with scroll locking, single scroll containers, and keyboard navigation. |
 
 ---
