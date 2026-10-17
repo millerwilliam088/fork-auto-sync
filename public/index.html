@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <title>ForkSync Hub</title>
   <!-- 官方矢量 SVG 图标（彻底移除 emoji） -->
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%2310b981'%3E%3Cpath d='M5 3.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm0 2.122a2.25 2.25 0 1 0-1.5 0v.878A2.25 2.25 0 0 0 5.75 8.5h4.5A2.25 2.25 0 0 0 12.5 6.25v-.878a2.25 2.25 0 1 0-1.5 0v.878a.75.75 0 0 1-.75.75h-4.5A.75.75 0 0 1 5 6.25v-.878ZM12.5 3.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM8 12.75a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM6.5 10.628a2.25 2.25 0 1 0 1.5 0V8.5h-1.5v2.128Z'/%3E%3C/svg%3E">
@@ -22,6 +25,7 @@
             dark: {
               900: '#0b0f19',
               800: '#111827',
+              750: '#182234',
               700: '#1f2937',
               600: '#374151'
             }
@@ -47,13 +51,30 @@
       border-color: rgba(16, 185, 129, 0.4);
       box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
     }
+    .stat-card-clickable {
+      cursor: pointer;
+      transition: border-color 0.15s ease, background-color 0.15s ease;
+    }
+    .stat-card-clickable:hover {
+      border-color: rgba(16, 185, 129, 0.5);
+      background-color: rgba(17, 24, 39, 0.95);
+    }
     .badge-btn {
       transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
       white-space: nowrap;
     }
     .repo-badge {
-      white-space: nowrap;
-      flex-shrink: 0;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      white-space: nowrap !important;
+      flex-shrink: 0 !important;
+      min-width: 56px !important;
+      height: 22px !important;
+      line-height: 1 !important;
+      box-sizing: border-box !important;
+      text-align: center !important;
+      letter-spacing: 0.5px !important;
     }
     body.modal-open {
       overflow: hidden !important;
@@ -222,30 +243,30 @@
         </div>
       </div>
 
-      <!-- 数据指标统计卡 -->
+      <!-- 数据指标统计卡 (点击可直接筛选对应状态) -->
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div class="glass-card rounded-xl p-4">
+        <div class="glass-card stat-card-clickable rounded-xl p-4 select-none" onclick="setFilter('all')" title="点击筛选全部 Fork 仓库">
           <div class="text-xs text-gray-400 font-medium">监控中 Fork 仓库</div>
           <div class="mt-2 text-2xl font-bold text-white flex items-center justify-between font-mono">
-            <span id="stat-total">7</span>
+            <span id="stat-total">0</span>
             <i class="fa-solid fa-code-fork text-gray-600 text-sm"></i>
           </div>
         </div>
-        <div class="glass-card rounded-xl p-4">
+        <div class="glass-card stat-card-clickable rounded-xl p-4 select-none" onclick="setFilter('synced')" title="点击仅查看已是最新仓库">
           <div class="text-xs text-emerald-400 font-medium">已与上游完全一致</div>
           <div class="mt-2 text-2xl font-bold text-emerald-400 flex items-center justify-between font-mono">
-            <span id="stat-synced">6</span>
+            <span id="stat-synced">0</span>
             <i class="fa-solid fa-circle-check text-emerald-500/40 text-sm"></i>
           </div>
         </div>
-        <div class="glass-card rounded-xl p-4">
+        <div class="glass-card stat-card-clickable rounded-xl p-4 select-none" onclick="setFilter('special')" title="点击仅查看绝版镜像或冲突保护仓库">
           <div class="text-xs text-sky-400 font-medium">独立绝版 / 冲突保护</div>
           <div class="mt-2 text-2xl font-bold text-sky-400 flex items-center justify-between font-mono">
-            <span id="stat-conflicts">1</span>
+            <span id="stat-conflicts">0</span>
             <i class="fa-solid fa-box-archive text-sky-500/40 text-sm"></i>
           </div>
         </div>
-        <div class="glass-card rounded-xl p-4">
+        <div class="glass-card stat-card-clickable rounded-xl p-4 select-none" onclick="setFilter('excluded')" title="点击仅查看已排除锁定仓库">
           <div class="text-xs text-purple-400 font-medium">已锁定 / 排除同步</div>
           <div class="mt-2 text-2xl font-bold text-purple-400 flex items-center justify-between font-mono">
             <span id="stat-excluded">0</span>
@@ -254,14 +275,34 @@
         </div>
       </div>
 
-      <!-- 搜索栏 -->
-      <div class="flex items-center justify-between gap-4">
-        <div class="relative flex-1 max-w-md">
-          <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-gray-500 text-xs"></i>
-          <input type="text" id="input-search" placeholder="搜索仓库名或上游作者... (按 / 快速定位)" class="w-full pl-9 pr-4 py-2 bg-dark-800/80 border border-gray-700 rounded-lg text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:border-emerald-500 transition">
+      <!-- 搜索与筛选控制栏 -->
+      <div class="space-y-3">
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+          <div class="relative flex-1 max-w-md">
+            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-gray-500 text-xs"></i>
+            <input type="text" id="input-search" placeholder="搜索仓库名或上游作者... (按 / 快速定位)" class="w-full pl-9 pr-8 py-2 bg-dark-800/80 border border-gray-700 rounded-lg text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:border-emerald-500 transition">
+            <button id="btn-clear-search" class="hidden absolute right-2.5 top-2.5 text-gray-500 hover:text-gray-300 text-xs p-0.5" title="清空搜索">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+
+          <!-- 状态筛选 Chips -->
+          <div class="flex items-center space-x-1.5 overflow-x-auto custom-scrollbar pb-1 sm:pb-0 text-xs shrink-0 select-none">
+            <button class="filter-chip px-3 py-1.5 rounded-lg font-medium transition bg-emerald-500/15 text-emerald-300 border border-emerald-500/30" data-filter="all" onclick="setFilter('all')">全部 (<span id="chip-count-all">0</span>)</button>
+            <button class="filter-chip px-3 py-1.5 rounded-lg font-medium transition bg-dark-800 text-gray-400 hover:text-gray-200 border border-gray-700" data-filter="synced" onclick="setFilter('synced')">已是最新 (<span id="chip-count-synced">0</span>)</button>
+            <button class="filter-chip px-3 py-1.5 rounded-lg font-medium transition bg-dark-800 text-gray-400 hover:text-gray-200 border border-gray-700" data-filter="special" onclick="setFilter('special')">绝版/保护 (<span id="chip-count-special">0</span>)</button>
+            <button class="filter-chip px-3 py-1.5 rounded-lg font-medium transition bg-dark-800 text-gray-400 hover:text-gray-200 border border-gray-700" data-filter="excluded" onclick="setFilter('excluded')">已排除 (<span id="chip-count-excluded">0</span>)</button>
+          </div>
         </div>
-        <div class="text-xs text-gray-400">
-          显示 <span id="visible-count" class="text-white font-semibold">0</span> 个 Fork 仓库
+
+        <div class="flex items-center justify-between text-xs text-gray-400 pt-0.5">
+          <div class="flex items-center space-x-2">
+            <span>显示 <span id="visible-count" class="text-white font-semibold">0</span> 个 Fork 仓库</span>
+            <button id="btn-reset-filter" class="hidden text-[11px] text-emerald-400 hover:underline flex items-center space-x-1" onclick="setFilter('all')">
+              <i class="fa-solid fa-xmark text-[9px]"></i>
+              <span>清除状态筛选</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -380,7 +421,11 @@
               <i class="fa-solid fa-filter text-emerald-400 text-xs"></i>
               <span>云端自动同步名单 (config.json)</span>
             </label>
-            <span class="text-[11px] text-gray-400">勾选开启，去勾锁定排除</span>
+            <div class="flex items-center space-x-2 text-[11px] text-gray-400">
+              <button type="button" id="btn-select-all-repos" class="text-emerald-400 hover:text-emerald-300 transition font-medium">全选</button>
+              <span>·</span>
+              <button type="button" id="btn-unselect-all-repos" class="text-gray-400 hover:text-white transition font-medium">全不选</button>
+            </div>
           </div>
 
           <div id="settings-repo-list" class="space-y-2 bg-dark-900/60 p-2.5 rounded-xl border border-gray-800 flex-1 min-h-[140px] max-h-[220px] overflow-y-auto custom-scrollbar">
@@ -502,9 +547,17 @@
       }, 3200);
     }
 
-    function copyToClipboard(text, desc = '内容') {
+    function copyToClipboard(text, desc = '内容', btnEl = null) {
       navigator.clipboard.writeText(text).then(() => {
         showToast(`已复制 ${desc}`, 'success');
+        if (btnEl) {
+          const icon = btnEl.querySelector('i');
+          if (icon) {
+            const oldClass = icon.className;
+            icon.className = 'fa-solid fa-check text-emerald-400';
+            setTimeout(() => { icon.className = oldClass; }, 1400);
+          }
+        }
       }).catch(() => {
         showToast('复制失败', 'warning');
       });
@@ -695,13 +748,12 @@
         const safeName = escapeHtml(repo.name);
         const safeFullName = escapeHtml(repo.full_name);
         return `
-          <label class="flex items-center justify-between p-2.5 rounded-lg bg-dark-800/80 hover:bg-dark-700/60 border border-gray-800/80 cursor-pointer transition select-none">
-            <div class="flex items-center space-x-2.5 min-w-0 flex-1 mr-3">
+          <label class="flex items-center justify-between p-2.5 rounded-lg bg-dark-800/80 hover:bg-dark-700/60 border border-gray-800/80 cursor-pointer transition select-none gap-3">
+            <div class="flex items-center space-x-2.5 min-w-0 flex-1">
               <input type="checkbox" data-reponame="${safeName}" ${isChecked ? 'checked' : ''} onchange="updateSettingsBadge(this)" class="settings-repo-checkbox shrink-0 text-emerald-500 rounded bg-dark-900 border-gray-700 focus:ring-0">
-              <span class="text-xs font-mono text-white truncate min-w-0">${safeName}</span>
-              <span class="text-[10px] text-gray-500 truncate hidden sm:inline min-w-0">(${safeFullName})</span>
+              <span class="text-xs font-mono text-white truncate min-w-0 flex-1">${safeName}</span>
             </div>
-            <span class="repo-badge shrink-0 whitespace-nowrap text-[10px] px-2.5 py-0.5 rounded font-medium ${isChecked ? 'text-emerald-400 bg-emerald-500/10' : 'text-gray-400 bg-gray-800'}">
+            <span class="repo-badge shrink-0 whitespace-nowrap text-[10px] px-2.5 py-0.5 rounded font-medium min-w-[56px] text-center ${isChecked ? 'text-emerald-400 bg-emerald-500/10' : 'text-gray-400 bg-gray-800'}">
               ${isChecked ? '同步中' : '已排除'}
             </span>
           </label>
@@ -709,13 +761,22 @@
       }).join('');
     }
 
+    function selectAllSettingsRepos(select = true) {
+      const checkboxes = document.querySelectorAll('.settings-repo-checkbox');
+      checkboxes.forEach(cb => {
+        cb.checked = select;
+        updateSettingsBadge(cb);
+      });
+    }
+
     function updateSettingsBadge(checkbox) {
-      const badge = checkbox.closest('label').querySelector('.repo-badge');
+      const badge = checkbox.closest('label')?.querySelector('.repo-badge');
+      if (!badge) return;
       if (checkbox.checked) {
-        badge.className = 'repo-badge shrink-0 whitespace-nowrap text-[10px] px-2.5 py-0.5 rounded font-medium text-emerald-400 bg-emerald-500/10';
+        badge.className = 'repo-badge shrink-0 whitespace-nowrap text-[10px] px-2.5 py-0.5 rounded font-medium min-w-[56px] text-center text-emerald-400 bg-emerald-500/10';
         badge.textContent = '同步中';
       } else {
-        badge.className = 'repo-badge shrink-0 whitespace-nowrap text-[10px] px-2.5 py-0.5 rounded font-medium text-gray-400 bg-gray-800';
+        badge.className = 'repo-badge shrink-0 whitespace-nowrap text-[10px] px-2.5 py-0.5 rounded font-medium min-w-[56px] text-center text-gray-400 bg-gray-800';
         badge.textContent = '已排除';
       }
     }
@@ -1159,25 +1220,69 @@
       }
     }
 
-    function updateStats() {
-      document.getElementById('stat-total').textContent = allForks.length;
-      const excludedCount = allForks.filter(r => isExcluded(r.name)).length;
-      document.getElementById('stat-excluded').textContent = excludedCount;
+    let currentFilter = 'all';
 
+    function setFilter(filter) {
+      currentFilter = filter;
+      document.querySelectorAll('.filter-chip').forEach(btn => {
+        if (btn.getAttribute('data-filter') === filter) {
+          btn.className = 'filter-chip px-3 py-1.5 rounded-lg font-medium transition bg-emerald-500/15 text-emerald-300 border border-emerald-500/30';
+        } else {
+          btn.className = 'filter-chip px-3 py-1.5 rounded-lg font-medium transition bg-dark-800 text-gray-400 hover:text-gray-200 border border-gray-700';
+        }
+      });
+      const resetBtn = document.getElementById('btn-reset-filter');
+      if (resetBtn) {
+        resetBtn.classList.toggle('hidden', filter === 'all');
+      }
+      renderList();
+    }
+
+    function updateStats() {
+      const total = allForks.length;
+      const excludedCount = allForks.filter(r => isExcluded(r.name)).length;
       const specialCount = allForks.filter(r => r.status === 'conflict' || r.status === 'upstream-deleted').length;
+      const syncedCount = Math.max(0, total - specialCount - excludedCount);
+
+      document.getElementById('stat-total').textContent = total;
+      document.getElementById('stat-excluded').textContent = excludedCount;
       document.getElementById('stat-conflicts').textContent = specialCount;
-      document.getElementById('stat-synced').textContent = allForks.length - specialCount - excludedCount;
+      document.getElementById('stat-synced').textContent = syncedCount;
+
+      const cAll = document.getElementById('chip-count-all');
+      if (cAll) cAll.textContent = total;
+      const cSynced = document.getElementById('chip-count-synced');
+      if (cSynced) cSynced.textContent = syncedCount;
+      const cSpecial = document.getElementById('chip-count-special');
+      if (cSpecial) cSpecial.textContent = specialCount;
+      const cExcluded = document.getElementById('chip-count-excluded');
+      if (cExcluded) cExcluded.textContent = excludedCount;
     }
 
     function renderList() {
       const container = document.getElementById('repo-list');
-      const rawQuery = (document.getElementById('input-search').value || '').trim();
+      const searchInput = document.getElementById('input-search');
+      const rawQuery = (searchInput ? searchInput.value : '').trim();
       const query = rawQuery.toLowerCase();
+
+      const clearBtn = document.getElementById('btn-clear-search');
+      if (clearBtn) {
+        clearBtn.classList.toggle('hidden', !rawQuery);
+      }
 
       const filtered = allForks.filter(r => {
         const name = (r.name || '').toLowerCase();
         const parent = (r.parent || '').toLowerCase();
-        return name.includes(query) || parent.includes(query);
+        const matchesQuery = !query || name.includes(query) || parent.includes(query);
+        if (!matchesQuery) return false;
+
+        const isEx = isExcluded(r.name);
+        const isSp = r.status === 'conflict' || r.status === 'upstream-deleted';
+
+        if (currentFilter === 'synced') return !isEx && !isSp;
+        if (currentFilter === 'special') return isSp;
+        if (currentFilter === 'excluded') return isEx;
+        return true;
       });
 
       document.getElementById('visible-count').textContent = filtered.length;
@@ -1267,7 +1372,7 @@
                       <span class="truncate">${safeName}</span>
                       <i class="fa-solid fa-arrow-up-right-from-square text-[11px] text-gray-400 group-hover:text-emerald-400 transition shrink-0"></i>
                     </a>
-                    <button onclick="copyToClipboard('${safeHtmlUrl}.git', 'Git 克隆链接')" class="text-gray-500 hover:text-emerald-400 text-xs transition p-1" title="复制 Git Clone 地址">
+                    <button onclick="copyToClipboard('${safeHtmlUrl}.git', 'Git 克隆链接', this)" class="text-gray-500 hover:text-emerald-400 text-xs transition p-1" title="复制 Git Clone 地址">
                       <i class="fa-regular fa-copy"></i>
                     </button>
                   </div>
@@ -1626,6 +1731,17 @@
 
       document.getElementById('btn-trigger-cloud').addEventListener('click', triggerCloudSync);
       document.getElementById('input-search').addEventListener('input', renderList);
+
+      document.getElementById('btn-clear-search')?.addEventListener('click', () => {
+        const searchInput = document.getElementById('input-search');
+        searchInput.value = '';
+        document.getElementById('btn-clear-search').classList.add('hidden');
+        searchInput.focus();
+        renderList();
+      });
+
+      document.getElementById('btn-select-all-repos')?.addEventListener('click', () => selectAllSettingsRepos(true));
+      document.getElementById('btn-unselect-all-repos')?.addEventListener('click', () => selectAllSettingsRepos(false));
 
       // 全局快捷键：'/' 聚焦搜索，'Escape' 关闭浮窗或清空搜索
       document.addEventListener('keydown', (e) => {
