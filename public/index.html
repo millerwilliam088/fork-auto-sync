@@ -154,7 +154,7 @@
 
         <!-- 右侧控制区 -->
         <div class="flex items-center space-x-3">
-          <a href="https://github.com/waw666waw666/fork-auto-sync/actions" target="_blank" class="hidden sm:flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs text-gray-300 hover:text-white bg-dark-800 hover:bg-dark-700 border border-gray-700 transition">
+          <a href="https://github.com/waw666waw666/fork-auto-sync/actions" id="link-actions-center" target="_blank" class="hidden sm:flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs text-gray-300 hover:text-white bg-dark-800 hover:bg-dark-700 border border-gray-700 transition">
             <i class="fa-brands fa-github text-sm"></i>
             <span>Actions 调度中心</span>
           </a>
@@ -432,6 +432,43 @@
       return `定时 ${c}`;
     }
 
+    // XSS 防御：HTML 字符转义
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    // XSS 防御：安全 URL 过滤
+    function sanitizeUrl(url) {
+      if (!url) return '#';
+      const clean = String(url).trim();
+      if (clean.startsWith('https://') || clean.startsWith('http://') || clean === '#') {
+        return clean;
+      }
+      return '#';
+    }
+
+    // 动态探测当前 GitHub 仓库路径（支持任何用户一键 Fork 零配置开箱即用）
+    function getSyncRepoPath() {
+      const host = window.location.hostname;
+      if (host.endsWith('.github.io')) {
+        const owner = host.split('.')[0];
+        const pathParts = window.location.pathname.split('/').filter(Boolean);
+        const repo = pathParts[0] || 'fork-auto-sync';
+        return `${owner}/${repo}`;
+      }
+      const currentLogin = document.getElementById('user-login')?.textContent?.trim();
+      if (currentLogin && currentLogin !== 'waw666waw666' && currentLogin !== '加载中...') {
+        return `${currentLogin}/fork-auto-sync`;
+      }
+      return 'waw666waw666/fork-auto-sync';
+    }
+
     function showToast(message, type = 'info') {
       const container = document.getElementById('toast-container');
       const toast = document.createElement('div');
@@ -503,7 +540,8 @@
     async function initCloudCronBanner(token) {
       if (!token) return;
       try {
-        const res = await fetch('https://api.github.com/repos/waw666waw666/fork-auto-sync/contents/.github/workflows/sync.yml', {
+        const repoPath = getSyncRepoPath();
+        const res = await fetch(`https://api.github.com/repos/${repoPath}/contents/.github/workflows/sync.yml`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Accept': 'application/vnd.github+json'
@@ -545,8 +583,10 @@
       saveBtn.disabled = true;
 
       try {
+        const repoPath = getSyncRepoPath();
+
         // 1. 获取 .github/workflows/sync.yml
-        const syncRes = await fetch('https://api.github.com/repos/waw666waw666/fork-auto-sync/contents/.github/workflows/sync.yml', {
+        const syncRes = await fetch(`https://api.github.com/repos/${repoPath}/contents/.github/workflows/sync.yml`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Accept': 'application/vnd.github+json'
@@ -577,7 +617,7 @@
         }
 
         // 2. 获取 config.json
-        const configRes = await fetch('https://api.github.com/repos/waw666waw666/fork-auto-sync/contents/config.json', {
+        const configRes = await fetch(`https://api.github.com/repos/${repoPath}/contents/config.json`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Accept': 'application/vnd.github+json'
@@ -615,25 +655,22 @@
       const repoListEl = document.getElementById('settings-repo-list');
       if (!repoListEl) return;
 
-      const currentRepos = allForks.length > 0 ? allForks : [
-        { name: 'rea', full_name: 'waw666waw666/rea' },
-        { name: 'antigravity-guide', full_name: 'waw666waw666/antigravity-guide' },
-        { name: 'mcp-obsidian', full_name: 'waw666waw666/mcp-obsidian' },
-        { name: 'Aider-Desk', full_name: 'waw666waw666/Aider-Desk' },
-        { name: 'context7', full_name: 'waw666waw666/context7' },
-        { name: 'ai-news-hub', full_name: 'waw666waw666/ai-news-hub' },
-        { name: 'awesome-skills', full_name: 'waw666waw666/awesome-skills' }
-      ];
+      if (allForks.length === 0) {
+        repoListEl.innerHTML = `<div class="text-center py-6 text-xs text-gray-500">暂无 Fork 仓库或正在同步数据，请稍候...</div>`;
+        return;
+      }
 
-      repoListEl.innerHTML = currentRepos.map(repo => {
+      repoListEl.innerHTML = allForks.map(repo => {
         const isExcluded = remoteConfigExclude.some(e => e.toLowerCase() === repo.name.toLowerCase() || e.toLowerCase() === repo.full_name.toLowerCase());
         const isChecked = !isExcluded;
+        const safeName = escapeHtml(repo.name);
+        const safeFullName = escapeHtml(repo.full_name);
         return `
           <label class="flex items-center justify-between p-2.5 rounded-lg bg-dark-800/80 hover:bg-dark-700/60 border border-gray-800/80 cursor-pointer transition select-none">
             <div class="flex items-center space-x-2.5 overflow-hidden">
-              <input type="checkbox" data-reponame="${repo.name}" ${isChecked ? 'checked' : ''} onchange="updateSettingsBadge(this)" class="settings-repo-checkbox text-emerald-500 rounded bg-dark-900 border-gray-700 focus:ring-0">
-              <span class="text-xs font-mono text-white truncate">${repo.name}</span>
-              <span class="text-[10px] text-gray-500 truncate hidden sm:inline">(${repo.full_name})</span>
+              <input type="checkbox" data-reponame="${safeName}" ${isChecked ? 'checked' : ''} onchange="updateSettingsBadge(this)" class="settings-repo-checkbox text-emerald-500 rounded bg-dark-900 border-gray-700 focus:ring-0">
+              <span class="text-xs font-mono text-white truncate">${safeName}</span>
+              <span class="text-[10px] text-gray-500 truncate hidden sm:inline">(${safeFullName})</span>
             </div>
             <span class="repo-badge text-[10px] px-2 py-0.5 rounded font-medium ${isChecked ? 'text-emerald-400 bg-emerald-500/10' : 'text-gray-400 bg-gray-800'}">
               ${isChecked ? '同步中' : '已排除'}
@@ -687,6 +724,7 @@
       saveStatus.textContent = '正在通过 GitHub API 写入云端...';
 
       try {
+        const repoPath = getSyncRepoPath();
         let cronUpdated = false;
         let configUpdated = false;
 
@@ -699,7 +737,7 @@
             saveStatus.textContent = '正在更新 Actions 定时周期...';
             const updatedYml = remoteSyncYmlContent.replace(/- cron:\s*['"][^'"]+['"]/, `- cron: '${selectedCron}'`);
             
-            const putSyncRes = await fetch('https://api.github.com/repos/waw666waw666/fork-auto-sync/contents/.github/workflows/sync.yml', {
+            const putSyncRes = await fetch(`https://api.github.com/repos/${repoPath}/contents/.github/workflows/sync.yml`, {
               method: 'PUT',
               headers: {
                 'Authorization': `Bearer ${token}`,
@@ -746,7 +784,7 @@
 
           const updatedConfigStr = JSON.stringify(parsedConfig, null, 2) + '\n';
 
-          const putConfigRes = await fetch('https://api.github.com/repos/waw666waw666/fork-auto-sync/contents/config.json', {
+          const putConfigRes = await fetch(`https://api.github.com/repos/${repoPath}/contents/config.json`, {
             method: 'PUT',
             headers: {
               'Authorization': `Bearer ${token}`,
@@ -805,7 +843,6 @@
         saveBtn.disabled = false;
         saveIcon.className = 'fa-solid fa-cloud-arrow-up text-[11px]';
         saveLabel.textContent = '保存并生效';
-      }
     }
 
     function formatDate(dateStr) {
@@ -906,11 +943,29 @@
 
         if (!userRes.ok) throw new Error('无效的 Token 或密钥已过期');
 
+        // 智能检测 Token 权限范围并给予温馨提醒
+        const scopesHeader = userRes.headers.get('x-oauth-scopes');
+        if (scopesHeader !== null) {
+          const scopes = scopesHeader.split(',').map(s => s.trim().toLowerCase());
+          const hasRepo = scopes.includes('repo') || scopes.includes('public_repo');
+          const hasWorkflow = scopes.includes('workflow');
+          if (!hasRepo || !hasWorkflow) {
+            const missing = [!hasRepo ? 'repo' : '', !hasWorkflow ? 'workflow' : ''].filter(Boolean).join(' 与 ');
+            showToast(`提示: 你的 Token 缺少 [${missing}] 权限，云端调度与定时配置可能受限`, 'warning');
+          }
+        }
+
         const userData = await userRes.json();
         saveToken(token);
 
         document.getElementById('user-avatar').src = userData.avatar_url || '';
         document.getElementById('user-login').textContent = userData.login || 'waw666waw666';
+
+        // 动态适配当前仓库 Actions 调度中心链接
+        const actionsLink = document.getElementById('link-actions-center');
+        if (actionsLink) {
+          actionsLink.href = `https://github.com/${getSyncRepoPath()}/actions`;
+        }
 
         document.getElementById('auth-lock-screen').style.display = 'none';
         document.getElementById('main-dashboard-app').classList.remove('hidden');
@@ -949,7 +1004,8 @@
     async function fetchLatestWorkflowRun(token) {
       const statusLabel = document.getElementById('label-latest-run-status');
       try {
-        const res = await fetch('https://api.github.com/repos/waw666waw666/fork-auto-sync/actions/workflows/sync.yml/runs?per_page=1', {
+        const repoPath = getSyncRepoPath();
+        const res = await fetch(`https://api.github.com/repos/${repoPath}/actions/workflows/sync.yml/runs?per_page=1`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Accept': 'application/vnd.github+json'
@@ -1078,7 +1134,8 @@
 
     function renderList() {
       const container = document.getElementById('repo-list');
-      const query = (document.getElementById('input-search').value || '').toLowerCase().trim();
+      const rawQuery = (document.getElementById('input-search').value || '').trim();
+      const query = rawQuery.toLowerCase();
 
       const filtered = allForks.filter(r => {
         const name = (r.name || '').toLowerCase();
@@ -1089,24 +1146,44 @@
       document.getElementById('visible-count').textContent = filtered.length;
 
       if (filtered.length === 0) {
-        container.innerHTML = `
-          <div class="col-span-full py-16 text-center text-gray-500 glass-card rounded-2xl">
-            <i class="fa-regular fa-folder-open text-2xl mb-2"></i>
-            <p class="text-xs">未找到匹配的 Fork 仓库</p>
-          </div>
-        `;
+        if (allForks.length === 0) {
+          container.innerHTML = `
+            <div class="col-span-full py-16 text-center text-gray-400 glass-card rounded-2xl space-y-2">
+              <i class="fa-solid fa-code-fork text-3xl text-gray-600 mb-2"></i>
+              <p class="text-sm font-medium text-white">当前 GitHub 账号下暂无 Fork 仓库</p>
+              <p class="text-xs text-gray-500">前往 GitHub Fork 任意感兴趣的项目后，点击上方「刷新」即可自动纳管</p>
+            </div>
+          `;
+        } else {
+          container.innerHTML = `
+            <div class="col-span-full py-16 text-center text-gray-500 glass-card rounded-2xl">
+              <i class="fa-regular fa-folder-open text-2xl mb-2"></i>
+              <p class="text-xs">未找到包含关键词 "${escapeHtml(rawQuery)}" 的 Fork 仓库</p>
+            </div>
+          `;
+        }
         return;
       }
 
       container.innerHTML = filtered.map(repo => {
+        const safeName = escapeHtml(repo.name);
+        const safeFullName = escapeHtml(repo.full_name);
+        const safeParent = escapeHtml(repo.parent || '未知上游');
+        const safeBranch = escapeHtml(repo.branch || 'main');
+        const safeDesc = escapeHtml(repo.description || '暂无描述');
+        const safeHtmlUrl = sanitizeUrl(repo.html_url);
+        const safeParentUrl = sanitizeUrl(repo.parent_url);
+        const encFullName = encodeURIComponent(repo.full_name);
+        const encBranch = encodeURIComponent(repo.branch || 'main');
+        const encName = encodeURIComponent(repo.name);
+
         const excluded = isExcluded(repo.name);
         const isConflict = repo.status === 'conflict';
         const isUpstreamDeleted = repo.status === 'upstream-deleted';
 
-        // 状态徽章：彻底去除跳动，平稳高质感
         let statusBadge = '';
-        const compareUrl = `https://github.com/${repo.full_name}/compare`;
-        const commitsUrl = `https://github.com/${repo.full_name}/commits/${repo.branch || 'main'}`;
+        const compareUrl = `https://github.com/${encFullName}/compare`;
+        const commitsUrl = `https://github.com/${encFullName}/commits/${encBranch}`;
 
         if (excluded) {
           statusBadge = `
@@ -1136,12 +1213,12 @@
             </a>`;
         }
 
-        const releaseUrl = `https://github.com/${repo.full_name}/releases`;
+        const releaseUrl = `https://github.com/${encFullName}/releases`;
         const tagBadge = repo.version && repo.version !== 'Git HEAD'
-          ? `<a href="${releaseUrl}" target="_blank" class="badge-btn px-2 py-0.5 text-xs rounded bg-dark-900 text-gray-300 hover:text-white border border-gray-700 font-mono text-[11px] inline-flex items-center space-x-1 hover:border-emerald-500 transition"><i class="fa-solid fa-tag text-[9px] text-emerald-400"></i><span>${repo.version}</span><i class="fa-solid fa-arrow-up-right-from-square text-[8px] text-gray-500"></i></a>`
+          ? `<a href="${releaseUrl}" target="_blank" class="badge-btn px-2 py-0.5 text-xs rounded bg-dark-900 text-gray-300 hover:text-white border border-gray-700 font-mono text-[11px] inline-flex items-center space-x-1 hover:border-emerald-500 transition"><i class="fa-solid fa-tag text-[9px] text-emerald-400"></i><span>${escapeHtml(repo.version)}</span><i class="fa-solid fa-arrow-up-right-from-square text-[8px] text-gray-500"></i></a>`
           : `<span class="px-2 py-0.5 text-xs rounded bg-dark-900/60 text-gray-500 border border-gray-800 font-mono text-[11px]">Git HEAD</span>`;
 
-        const branchUrl = `https://github.com/${repo.full_name}/tree/${repo.branch || 'main'}`;
+        const branchUrl = `https://github.com/${encFullName}/tree/${encBranch}`;
 
         return `
           <div class="glass-card rounded-2xl p-5 flex flex-col justify-between space-y-4">
@@ -1149,19 +1226,19 @@
               <div class="flex items-start justify-between gap-3">
                 <div class="space-y-1.5 flex-1 min-w-0">
                   <div class="flex items-center space-x-2">
-                    <a href="${repo.html_url}" target="_blank" class="text-base font-bold text-white hover:text-emerald-400 transition flex items-center space-x-1.5 group truncate">
-                      <span class="truncate">${repo.name}</span>
+                    <a href="${safeHtmlUrl}" target="_blank" class="text-base font-bold text-white hover:text-emerald-400 transition flex items-center space-x-1.5 group truncate">
+                      <span class="truncate">${safeName}</span>
                       <i class="fa-solid fa-arrow-up-right-from-square text-[11px] text-gray-400 group-hover:text-emerald-400 transition shrink-0"></i>
                     </a>
-                    <button onclick="copyToClipboard('${repo.html_url}.git', 'Git 克隆链接')" class="text-gray-500 hover:text-emerald-400 text-xs transition p-1" title="复制 Git Clone 地址">
+                    <button onclick="copyToClipboard('${safeHtmlUrl}.git', 'Git 克隆链接')" class="text-gray-500 hover:text-emerald-400 text-xs transition p-1" title="复制 Git Clone 地址">
                       <i class="fa-regular fa-copy"></i>
                     </button>
                   </div>
 
                   <div class="text-xs text-gray-400 flex items-center space-x-1.5 flex-wrap">
                     <span class="text-gray-500 shrink-0">上游来源:</span>
-                    <a href="${repo.parent_url || '#'}" target="_blank" class="text-gray-300 hover:text-emerald-300 transition font-mono inline-flex items-center space-x-1 group">
-                      <span class="underline decoration-gray-600 group-hover:decoration-emerald-400">${repo.parent || '未知上游'}</span>
+                    <a href="${safeParentUrl}" target="_blank" class="text-gray-300 hover:text-emerald-300 transition font-mono inline-flex items-center space-x-1 group">
+                      <span class="underline decoration-gray-600 group-hover:decoration-emerald-400">${safeParent}</span>
                       <i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-gray-500 group-hover:text-emerald-300 transition"></i>
                     </a>
                   </div>
@@ -1172,7 +1249,7 @@
                 </div>
               </div>
 
-              <p class="text-xs text-gray-400 line-clamp-2 leading-relaxed">${repo.description || '暂无描述'}</p>
+              <p class="text-xs text-gray-400 line-clamp-2 leading-relaxed">${safeDesc}</p>
 
               <div class="grid grid-cols-2 gap-2 pt-3 border-t border-gray-800 text-xs">
                 <div>
@@ -1185,7 +1262,7 @@
                   <div class="mt-1">
                     <a href="${branchUrl}" target="_blank" class="font-mono text-gray-300 hover:text-white text-xs bg-dark-900 px-2 py-0.5 rounded border border-gray-800 hover:border-gray-600 inline-flex items-center space-x-1 transition">
                       <i class="fa-solid fa-code-branch text-[10px] text-emerald-400"></i>
-                      <span>${repo.branch || 'main'}</span>
+                      <span>${safeBranch}</span>
                     </a>
                   </div>
                 </div>
@@ -1202,16 +1279,16 @@
 
             <div class="flex items-center justify-between pt-3 border-t border-gray-800">
               <label class="flex items-center space-x-2 text-xs cursor-pointer text-gray-400 hover:text-gray-200 select-none">
-                <input type="checkbox" ${!excluded ? 'checked' : ''} onchange="toggleExclude('${repo.name}')" class="rounded bg-dark-900 border-gray-700 text-emerald-500 focus:ring-0">
+                <input type="checkbox" ${!excluded ? 'checked' : ''} onchange="toggleExclude(decodeURIComponent('${encName}'))" class="rounded bg-dark-900 border-gray-700 text-emerald-500 focus:ring-0">
                 <span>自动同步</span>
               </label>
 
               ${isUpstreamDeleted
-                ? `<button onclick="syncSingleRepo('${repo.full_name}', '${repo.branch || 'main'}')" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-dark-700 hover:bg-dark-600 text-gray-300 border border-gray-600 flex items-center space-x-1.5 transition" title="上游母库已删，点击可检测详情">
+                ? `<button onclick="syncSingleRepo(decodeURIComponent('${encFullName}'), decodeURIComponent('${encBranch}'))" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-dark-700 hover:bg-dark-600 text-gray-300 border border-gray-600 flex items-center space-x-1.5 transition" title="上游母库已删，点击可检测详情">
                      <i class="fa-solid fa-box-archive text-[11px] text-sky-400"></i>
                      <span>检查上游</span>
                    </button>`
-                : `<button onclick="syncSingleRepo('${repo.full_name}', '${repo.branch || 'main'}')" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white flex items-center space-x-1.5 transition shadow-sm">
+                : `<button onclick="syncSingleRepo(decodeURIComponent('${encFullName}'), decodeURIComponent('${encBranch}'))" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white flex items-center space-x-1.5 transition shadow-sm">
                      <i class="fa-solid fa-arrows-rotate text-[11px]"></i>
                      <span>立即同步</span>
                    </button>`
@@ -1239,7 +1316,8 @@
       statusLabel.innerHTML = `<span class="text-cyan-400 font-medium">启动中...</span>`;
 
       try {
-        const res = await fetch('https://api.github.com/repos/waw666waw666/fork-auto-sync/actions/workflows/sync.yml/dispatches', {
+        const repoPath = getSyncRepoPath();
+        const res = await fetch(`https://api.github.com/repos/${repoPath}/actions/workflows/sync.yml/dispatches`, {
           method: 'POST',
           headers: {
             'Accept': 'application/vnd.github+json',
@@ -1271,7 +1349,7 @@
           const pollInterval = setInterval(async () => {
             pollAttempts++;
             try {
-              const runRes = await fetch('https://api.github.com/repos/waw666waw666/fork-auto-sync/actions/workflows/sync.yml/runs?per_page=1', {
+              const runRes = await fetch(`https://api.github.com/repos/${repoPath}/actions/workflows/sync.yml/runs?per_page=1`, {
                 headers: {
                   'Authorization': `Bearer ${token}`,
                   'Accept': 'application/vnd.github+json'
