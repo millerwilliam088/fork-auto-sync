@@ -137,7 +137,7 @@
         <div>
           <label class="block text-xs font-medium text-gray-300 mb-1.5">GitHub Access Token</label>
           <div class="relative">
-            <input type="password" id="input-lock-token" placeholder="ghp_... 或 gho_..." class="w-full pl-3.5 pr-10 py-2.5 bg-dark-900 border border-gray-700 rounded-xl text-xs text-white focus:outline-none focus:border-emerald-500 font-mono transition">
+            <input type="password" id="input-lock-token" autocomplete="off" spellcheck="false" placeholder="ghp_... 或 gho_..." class="w-full pl-3.5 pr-10 py-2.5 bg-dark-900 border border-gray-700 rounded-xl text-xs text-white focus:outline-none focus:border-emerald-500 font-mono transition">
             <button id="btn-toggle-lock-vis" class="absolute right-3 top-3 text-gray-500 hover:text-gray-300 text-xs">
               <i class="fa-solid fa-eye"></i>
             </button>
@@ -564,7 +564,7 @@
     }
 
     function getToken() {
-      return localStorage.getItem(STORAGE_KEY_TOKEN) || '';
+      return localStorage.getItem(STORAGE_KEY_TOKEN) || sessionStorage.getItem(STORAGE_KEY_TOKEN) || '';
     }
 
     function saveToken(token) {
