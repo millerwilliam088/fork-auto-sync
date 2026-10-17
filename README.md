@@ -32,6 +32,7 @@
   <a href="#deployment-guide">Deployment Guide</a> •
   <a href="#configuration-specification">Configuration</a> •
   <a href="#security-and-data-privacy-model">Security & Privacy</a> •
+  <a href="#security-cautions-and-disclaimer">Security & Disclaimer</a> •
   <a href="#technical-faq">FAQ</a> •
   <a href="#license">License</a>
 </p>
@@ -179,6 +180,28 @@ ForkSync Hub operates under strict security and data governance standards:
 2. **Ephemeral Runtime**: The GitHub Actions runner executes within an isolated Ubuntu virtual environment, discarding all temporary data upon job termination.
 3. **Safe Merge Strategy**: When upstream commits produce merge conflicts (HTTP 409), the system halts synchronization for the conflicting repository and reports the status without overwriting existing code.
 4. **404 Archive Protection**: When upstream deletion occurs, the synchronization runner safely suspends operations, preventing downstream error propagation and preserving the fork.
+
+---
+
+## Security Cautions & Disclaimer
+
+### ⚠️ Security Cautions (Mandatory Compliance)
+
+1. **Never Publicize or Expose Your Personal Access Token (PAT)**:
+   * A GitHub Token grants direct API authorization equivalent to (or exceeding) account password credentials. **Never** transmit your token to third-party services, chat platforms, public screenshots, or commit it into public or private Git repositories.
+   * **Only use tokens in two trusted environments**:
+     * ① Inputted into your self-hosted browser dashboard verifying the official Pages address (stored exclusively within local `localStorage`, zero upload);
+     * ② Saved inside your own forked repository under `Settings -> Secrets and variables -> Actions` (encrypted by GitHub's official Libsodium asymmetric encryption).
+2. **Principle of Least Privilege (Fine-Grained Tokens Recommended)**:
+   * We strongly recommend generating GitHub **Fine-Grained Personal Access Tokens** with repository access restricted strictly to your required forks and permissions limited to `Contents: Read and write`. Avoid classic tokens with unbounded global scopes.
+3. **Session Eviction on Shared Hardware**:
+   * If accessing the web console from a non-personal workstation, always click "Lock & Exit" to immediately purge local credentials before disconnecting.
+
+### 📜 Disclaimer
+
+1. **Open Source & Provided "AS IS"**: This project is provided as a free, open-source client-side and native workflow automation tool under the [MIT License](LICENSE), without warranty of any kind, express or implied.
+2. **User Credential Responsibility**: The user assumes complete responsibility for the generation, management, secure storage, and revocation of their GitHub Personal Access Tokens. The project authors and contributors accept no liability for any credential compromises, account suspensions, unauthorized repository mutations, or data loss resulting from malware on user machines, token mismanagement, or improper operational handling.
+3. **Branch Merging Risks**: While automated safety mechanisms (including conflict shields and 404 dead-upstream archival locks) are enforced, users remain responsible for maintaining backups of critical repositories and private branches.
 
 ---
 

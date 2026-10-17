@@ -157,9 +157,18 @@
         </button>
       </div>
 
-      <p class="text-[11px] text-gray-500 pt-2 border-t border-gray-800">
-        零泄露保障：未经授权的访客无法查看任何仓库与数据
-      </p>
+      <!-- 安全注意事项与免责声明模块 -->
+      <div class="mt-3.5 p-3 rounded-xl bg-dark-900/90 border border-amber-500/30 text-[11px] text-gray-400 leading-relaxed text-left space-y-1.5 shadow-inner">
+        <div class="flex items-center space-x-1.5 text-amber-400 font-semibold text-xs">
+          <i class="fa-solid fa-triangle-exclamation text-[11px]"></i>
+          <span>重要安全注意事项与免责声明</span>
+        </div>
+        <p>1. <strong>切勿外泄 Token</strong>：GitHub Token 等同于账号最高权限密码，绝对不可截图公开、发送给他人或提交至任何 Git 代码中。</p>
+        <p>2. <strong>物理本地隔离</strong>：本站为纯客户端零信任架构，Token 仅留存在当前这台设备的浏览器存储中，绝不上报或中转给第三方服务器。</p>
+        <p class="text-[10px] text-gray-500 pt-1 border-t border-gray-800/80 leading-normal">
+          * 免责声明：本项目为 MIT 开源辅助工具。使用者须对自身 Token 的妥善保管及授权触发的合并操作承担全部安全责任，项目不对因个人保管不当或外部设备安全问题导致的风险承担连带责任。
+        </p>
+      </div>
     </div>
   </div>
 
@@ -314,8 +323,9 @@
     </main>
 
     <!-- 底部说明 -->
-    <footer class="border-t border-gray-800 py-6 text-center text-xs text-gray-500 bg-dark-900">
+    <footer class="border-t border-gray-800 py-6 text-center text-xs text-gray-500 bg-dark-900 space-y-1">
       <p>ForkSync Hub · 纯云端无服务器架构 · 保护本地代码零污染</p>
+      <p class="text-[11px] text-gray-600">安全提醒：请妥善保管个人 GitHub Access Token，切勿外泄 · 遵循 MIT 开源免责声明</p>
     </footer>
 
   </div>
