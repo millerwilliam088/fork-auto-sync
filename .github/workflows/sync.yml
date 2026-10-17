@@ -1,0 +1,27 @@
+name: Auto Sync All Forks
+
+on:
+  schedule:
+    # 每天 UTC 00:00 和 12:00（即北京时间 08:00 和 20:00）自动检查同步
+    - cron: '0 0,12 * * *'
+  # 支持随时在网页端或手机 GitHub App 上点击“Run workflow”立即同步
+  workflow_dispatch:
+
+jobs:
+  sync-forks:
+    runs-on: ubuntu-latest
+    name: Sync All Forked Repositories
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Run Sync Script
+        run: node sync.mjs
+        env:
+          SYNC_TOKEN: ${{ secrets.SYNC_TOKEN }}

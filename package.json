@@ -1,0 +1,7 @@
+{
+  "name": "fork-auto-sync",
+  "version": "1.0.0",
+  "description": "Automatically sync all forked repositories in GitHub account",
+  "type": "module",
+  "private": true
+}
