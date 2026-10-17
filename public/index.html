@@ -171,31 +171,29 @@
     <!-- 主体工作区 -->
     <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
 
-      <!-- 顶部云端状态提示栏（含实时状态与无 emoji 专业按钮） -->
-      <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 p-5 rounded-2xl bg-dark-800/80 border border-gray-800 shadow-xl">
+      <!-- 顶部云端状态栏 (极简呼吸感布局，告别拥挤复杂) -->
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-5 rounded-2xl bg-dark-800/80 border border-gray-800 shadow-xl">
         <div class="flex items-center space-x-3.5">
-          <div class="w-3.5 h-3.5 rounded-full bg-emerald-500 animate-pulse shrink-0" id="cloud-indicator-dot"></div>
-          <div>
-            <div class="text-sm font-semibold text-white flex items-center space-x-2 flex-wrap">
-              <span>云端自动同步系统</span>
-              <span class="text-xs font-normal text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20">每日 08:00 & 20:00 自动执行</span>
+          <div class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0" id="cloud-indicator-dot"></div>
+          <div class="space-y-1">
+            <div class="flex items-center space-x-2.5">
+              <span class="text-sm font-semibold text-white tracking-tight">云端自动同步</span>
+              <span class="text-[11px] text-gray-400 bg-dark-900 px-2 py-0.5 rounded border border-gray-700 font-mono">定时 08:00 / 20:00</span>
             </div>
-            <div class="text-xs text-gray-400 mt-1 flex items-center space-x-2 flex-wrap">
-              <span>最近运行记录：<strong id="label-latest-run-status" class="text-emerald-300 font-normal">正在查询云端记录...</strong></span>
-              <span>·</span>
-              <span>运行于 GitHub 官方机房，本地电脑零改动零风险</span>
+            <div class="text-xs text-gray-400 flex items-center space-x-2 font-mono">
+              <span class="text-gray-500">最近状态:</span>
+              <span id="label-latest-run-status" class="text-gray-300">正在查询...</span>
             </div>
           </div>
         </div>
 
-        <div class="flex items-center space-x-2.5 w-full lg:w-auto shrink-0">
-          <button id="btn-refresh" class="flex-1 lg:flex-none flex items-center justify-center space-x-1.5 px-3.5 py-2.5 rounded-xl text-xs font-medium bg-dark-700 hover:bg-dark-600 text-gray-200 border border-gray-600 transition">
+        <div class="flex items-center space-x-2.5 w-full sm:w-auto shrink-0">
+          <button id="btn-refresh" class="flex-1 sm:flex-none flex items-center justify-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-medium bg-dark-700 hover:bg-dark-600 text-gray-200 border border-gray-600 transition">
             <i class="fa-solid fa-rotate-right text-[11px]" id="refresh-icon"></i>
-            <span>刷新数据</span>
+            <span>刷新</span>
           </button>
           
-          <!-- 专业同步按钮（彻底移除 emoji，加入严谨的加载与完成闭环） -->
-          <button id="btn-trigger-cloud" class="flex-1 lg:flex-none flex items-center justify-center space-x-2 px-5 py-2.5 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white shadow-md transition disabled:opacity-75 disabled:cursor-not-allowed">
+          <button id="btn-trigger-cloud" class="flex-1 sm:flex-none flex items-center justify-center space-x-2 px-4 py-2 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white shadow-md transition disabled:opacity-75 disabled:cursor-not-allowed">
             <i class="fa-solid fa-arrows-rotate text-[11px]" id="sync-btn-icon"></i>
             <span id="sync-btn-label">立即同步全部 Fork</span>
           </button>
@@ -383,6 +381,16 @@
       return `${year}-${month}-${day} ${hour}:${min} (${relative})`;
     }
 
+    function formatTimeAgo(dateStr) {
+      if (!dateStr) return '未知时间';
+      const diffMin = Math.floor((new Date() - new Date(dateStr)) / 60000);
+      if (diffMin < 1) return '刚刚';
+      if (diffMin < 60) return `${diffMin}分钟前`;
+      const diffHour = Math.floor(diffMin / 60);
+      if (diffHour < 24) return `${diffHour}小时前`;
+      return `${Math.floor(diffHour / 24)}天前`;
+    }
+
     // 骨架屏加载动画（彻底解决空屏等待问题）
     function renderSkeletonLoading() {
       const container = document.getElementById('repo-list');
@@ -498,14 +506,14 @@
           const data = await res.json();
           const run = data.workflow_runs && data.workflow_runs[0];
           if (run) {
-            const timeAgo = formatDate(run.updated_at || run.created_at);
+            const timeAgo = formatTimeAgo(run.updated_at || run.created_at);
             const durationSec = Math.round((new Date(run.updated_at) - new Date(run.run_started_at || run.created_at)) / 1000) || 14;
             
             if (run.status === 'completed') {
               const isSuccess = run.conclusion === 'success';
-              statusLabel.innerHTML = `<span class="${isSuccess ? 'text-emerald-400' : 'text-amber-400'} font-medium">已完成</span> (${timeAgo} · 耗时 ${durationSec}秒 · ${isSuccess ? '全量已最新' : '含冲突保护'})`;
+              statusLabel.innerHTML = `<span class="${isSuccess ? 'text-emerald-400' : 'text-amber-400'} font-medium">已完成</span> · ${timeAgo} · 耗时 ${durationSec}s`;
             } else {
-              statusLabel.innerHTML = `<span class="text-cyan-400 font-medium">运行中...</span> (${timeAgo} 触发)`;
+              statusLabel.innerHTML = `<span class="text-cyan-400 font-medium">同步中...</span> · ${timeAgo}`;
             }
           }
         }
@@ -769,7 +777,7 @@
       btn.disabled = true;
       icon.className = 'fa-solid fa-circle-notch fa-spin text-[11px]';
       label.textContent = '已触发云端同步...';
-      statusLabel.innerHTML = `<span class="text-cyan-400 font-medium">云端调度启动中...</span>`;
+      statusLabel.innerHTML = `<span class="text-cyan-400 font-medium">启动中...</span>`;
 
       try {
         const res = await fetch('https://api.github.com/repos/waw666waw666/fork-auto-sync/actions/workflows/sync.yml/dispatches', {
@@ -792,7 +800,7 @@
           const timerInterval = setInterval(() => {
             secondsPassed++;
             label.textContent = `云端同步中 (${secondsPassed}s)...`;
-            statusLabel.innerHTML = `<span class="text-cyan-400 font-medium">云端机房正在自动合并 (${secondsPassed}s)...</span>`;
+            statusLabel.innerHTML = `<span class="text-cyan-400 font-medium">同步中 (${secondsPassed}s)</span>`;
           }, 1000);
 
           // 等待 3 秒让 GitHub 创建运行实例后，每 2.5 秒轮询一次状态
@@ -831,7 +839,7 @@
                       btn.classList.remove('bg-emerald-600', 'hover:bg-emerald-500');
                       btn.classList.add('bg-teal-600');
 
-                      statusLabel.innerHTML = `<span class="text-emerald-400 font-bold">刚刚全量同步完成</span> (耗时 ${totalTime}秒 · 6个最新 1个保护)`;
+                      statusLabel.innerHTML = `<span class="text-emerald-400 font-medium">刚刚完成</span> · 耗时 ${totalTime}s`;
                       showToast(`云端同步已全部完成！(耗时 ${totalTime}s)`, 'success');
 
                       // 刷新仓库列表数据
