@@ -136,6 +136,19 @@ async function syncFork(repo) {
       console.log(`✅ [${fullName}] (${branch}): ${data.message || "同步成功"}`);
       return { repo: fullName, url: repo.html_url, parent, branch, status: "success", detail: data.message || "同步成功" };
     } else if (res.status === 409) {
+      let isUpstreamDead = false;
+      try {
+        if (parent && parent !== '未知上游') {
+          const parentRes = await fetch(`https://api.github.com/repos/${parent}`, { headers });
+          if (parentRes.status === 404) isUpstreamDead = true;
+        }
+      } catch (_) {}
+
+      if (isUpstreamDead) {
+        console.warn(`📦 [${fullName}] (${branch}): 上游母项目已在 GitHub 被注销或删除 (404)，当前为独立绝版镜像`);
+        return { repo: fullName, url: repo.html_url, parent, branch, status: "upstream-deleted", detail: "上游原项目已注销(404)，当前为绝版独立镜像" };
+      }
+
       console.warn(`⚠️ [${fullName}] (${branch}): 存在合并冲突，保持原样`);
       return { repo: fullName, url: repo.html_url, parent, branch, status: "conflict", detail: data.message || "存在代码冲突，已安全保护不合并" };
     } else if (res.status === 422) {
@@ -160,6 +173,7 @@ function writeStepSummary(results) {
     "up-to-date": "ℹ️ 保持最新",
     skipped: "⏸️ 已跳过",
     conflict: "⚠️ 代码冲突",
+    "upstream-deleted": "📦 绝版镜像",
     error: "❌ 异常失败",
     "dry-run": "🔍 预览检查",
   };
@@ -173,6 +187,7 @@ function writeStepSummary(results) {
   const upToDateCount = results.filter((r) => r.status === "up-to-date").length;
   const skippedCount = results.filter((r) => r.status === "skipped").length;
   const conflictCount = results.filter((r) => r.status === "conflict").length;
+  const upstreamDeletedCount = results.filter((r) => r.status === "upstream-deleted").length;
   const errorCount = results.filter((r) => r.status === "error").length;
 
   const content = `## 🚀 Fork 自动同步可视化看板
@@ -180,13 +195,14 @@ function writeStepSummary(results) {
 > **触发方式**: ${targetInput && targetInput.toUpperCase() !== 'ALL' ? `指定仓库 (${targetInput})` : '全量 Fork 同步'} | **运行模式**: ${isDryRun ? '仅预览 (Dry Run)' : '自动合并'}
 
 | 序号 | Fork 仓库 | 上游原项目 | 分支 | 状态 | 详细说明 |
-| :---: | :--- | :--- | :---: | :---: | :--- |
+| :---: | :--- | :--- | :--- | :---: | :--- |
 ${rows.join("\n")}
 
 ### 📊 本次汇总数据
 - **总计扫描 Fork 数**: ${results.length}
 - **✅ 新同步提交**: ${successCount} 个
 - **ℹ️ 已是最新版本**: ${upToDateCount} 个
+- **📦 独立绝版镜像**: ${upstreamDeletedCount} 个
 - **⏸️ 规则跳过/锁定**: ${skippedCount} 个
 - **⚠️ 冲突安全保护**: ${conflictCount} 个
 - **❌ 异常失败**: ${errorCount} 个

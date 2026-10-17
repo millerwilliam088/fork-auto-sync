@@ -219,10 +219,10 @@
           </div>
         </div>
         <div class="glass-card rounded-xl p-4">
-          <div class="text-xs text-amber-400 font-medium">安全保护 (冲突未合并)</div>
-          <div class="mt-2 text-2xl font-bold text-amber-400 flex items-center justify-between font-mono">
+          <div class="text-xs text-sky-400 font-medium">独立绝版 / 冲突保护</div>
+          <div class="mt-2 text-2xl font-bold text-sky-400 flex items-center justify-between font-mono">
             <span id="stat-conflicts">1</span>
-            <i class="fa-solid fa-shield-halved text-amber-500/40 text-sm"></i>
+            <i class="fa-solid fa-box-archive text-sky-500/40 text-sm"></i>
           </div>
         </div>
         <div class="glass-card rounded-xl p-4">
@@ -276,8 +276,8 @@
       </div>
 
       <div class="flex items-center justify-between pt-2 border-t border-gray-700">
-        <span class="text-xs text-gray-500" id="sync-console-status">就绪</span>
-        <button id="btn-finish-console" class="px-4 py-2 rounded-lg text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white transition">完成关闭</button>
+        <span class="text-xs text-gray-500 font-mono" id="sync-console-status">就绪</span>
+        <button id="btn-finish-console" class="px-4 py-2 rounded-lg text-xs font-semibold bg-dark-700 hover:bg-dark-600 text-gray-200 border border-gray-600 transition">关闭窗口</button>
       </div>
     </div>
   </div>
@@ -540,7 +540,7 @@
           let parentName = '未知上游';
           let parentUrl = repo.html_url;
           let latestTag = null;
-          let isConflict = (repo.name === 'ARTEX'); // ARTEX 存在冲突
+          let upstreamDeleted = false;
 
           try {
             const detailRes = await fetch(`https://api.github.com/repos/${repo.full_name}`, {
@@ -551,6 +551,16 @@
               if (detail.parent) {
                 parentName = detail.parent.full_name;
                 parentUrl = detail.parent.html_url;
+
+                // 探测上游是否依然存活 (如果 404 说明上游原作者已被封禁或删库)
+                try {
+                  const pCheck = await fetch(`https://api.github.com/repos/${parentName}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                  });
+                  if (pCheck.status === 404) {
+                    upstreamDeleted = true;
+                  }
+                } catch (_) {}
               }
             }
           } catch (_) {}
@@ -565,6 +575,11 @@
             }
           } catch (_) {}
 
+          let repoStatus = 'up-to-date';
+          if (upstreamDeleted) {
+            repoStatus = 'upstream-deleted';
+          }
+
           return {
             name: repo.name,
             full_name: repo.full_name,
@@ -575,7 +590,7 @@
             parent_url: parentUrl,
             version: latestTag || 'Git HEAD',
             updated_at: repo.pushed_at || repo.updated_at,
-            status: isConflict ? 'conflict' : 'up-to-date'
+            status: repoStatus
           };
         }));
 
@@ -595,9 +610,9 @@
       const excludedCount = allForks.filter(r => isExcluded(r.name)).length;
       document.getElementById('stat-excluded').textContent = excludedCount;
 
-      const conflicts = allForks.filter(r => r.status === 'conflict').length;
-      document.getElementById('stat-conflicts').textContent = conflicts;
-      document.getElementById('stat-synced').textContent = allForks.length - conflicts - excludedCount;
+      const specialCount = allForks.filter(r => r.status === 'conflict' || r.status === 'upstream-deleted').length;
+      document.getElementById('stat-conflicts').textContent = specialCount;
+      document.getElementById('stat-synced').textContent = allForks.length - specialCount - excludedCount;
     }
 
     function renderList() {
@@ -625,6 +640,7 @@
       container.innerHTML = filtered.map(repo => {
         const excluded = isExcluded(repo.name);
         const isConflict = repo.status === 'conflict';
+        const isUpstreamDeleted = repo.status === 'upstream-deleted';
 
         // 状态徽章：彻底去除跳动，平稳高质感
         let statusBadge = '';
@@ -636,6 +652,12 @@
             <span class="badge-btn px-2.5 py-1 text-xs rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/25 font-medium inline-flex items-center space-x-1.5 shadow-sm" title="该仓库已在设置中锁定，不再跟进上游更新">
               <i class="fa-solid fa-lock text-[10px]"></i>
               <span>已锁定排除</span>
+            </span>`;
+        } else if (isUpstreamDeleted) {
+          statusBadge = `
+            <span class="badge-btn px-2.5 py-1 text-xs rounded-full bg-sky-500/15 text-sky-300 border border-sky-500/30 font-medium inline-flex items-center space-x-1.5 shadow-sm" title="上游原作者已被 GitHub 注销或删库 (404)，本仓库已成为全网绝版独立镜像，无需且无法再合并">
+              <i class="fa-solid fa-box-archive text-[10px]"></i>
+              <span>上游已删 · 绝版镜像</span>
             </span>`;
         } else if (isConflict) {
           statusBadge = `
@@ -884,23 +906,49 @@
         if (res.status === 200) {
           appendLog(`[OK] 成功合并上游最新提交: ${data.message || 'Synced successfully!'}`, 'text-emerald-400');
           showToast(`[${fullName}] 成功同步最新提交！`, 'success');
+          finishConsole('✓ 同步成功', 'text-emerald-400');
         } else if (res.status === 409) {
-          appendLog(`[WARN] 检测到代码冲突，GitHub 已自动保护未做合并: ${data.message}`, 'text-amber-400');
-          showToast(`[${fullName}] 存在代码冲突，已安全保护`, 'warning');
+          // 进一步检测是否是上游母库不存在 (404)
+          let isDead = false;
+          let parentName = '';
+          const currentRepo = allForks.find(r => r.full_name === fullName);
+          if (currentRepo && currentRepo.parent && currentRepo.parent !== '未知上游') {
+            parentName = currentRepo.parent;
+            try {
+              const pRes = await fetch(`https://api.github.com/repos/${parentName}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+              });
+              if (pRes.status === 404) isDead = true;
+            } catch (_) {}
+          }
+
+          if (isDead) {
+            appendLog(`[INFO] 检测到上游母项目 (${parentName}) 已在 GitHub 注销或删库 (HTTP 404)。`, 'text-sky-400');
+            appendLog(`[WARN] GitHub merge-upstream 找不到源分支，返回底层 409 保护。`, 'text-amber-400');
+            appendLog(`[OK] 当前仓库已是上游删除前最后的绝版代码，无需且无法再合并。`, 'text-sky-300');
+            showToast(`[${fullName}] 上游母项目已删除，当前为绝版独立镜像`, 'info');
+            finishConsole('📦 上游已删 (绝版独立镜像)', 'text-sky-400');
+          } else {
+            appendLog(`[WARN] 检测到代码冲突，GitHub 已自动保护未做合并: ${data.message}`, 'text-amber-400');
+            showToast(`[${fullName}] 存在代码冲突，已安全保护`, 'warning');
+            finishConsole('⚠️ 未合并 (代码冲突保护)', 'text-amber-400');
+          }
         } else if (res.status === 422) {
           appendLog(`[INFO] 当前分支已与上游完全一致，无需合并`, 'text-cyan-400');
           showToast(`[${fullName}] 已是最新版本`, 'info');
+          finishConsole('ℹ️ 已是最新 (无需合并)', 'text-cyan-400');
         } else {
           appendLog(`[ERR] 错误 ${res.status}: ${data.message}`, 'text-rose-400');
           showToast(`同步失败: ${data.message}`, 'error');
+          finishConsole(`❌ 异常失败 (${res.status})`, 'text-rose-400');
         }
       } catch (err) {
         appendLog(`[ERR] 网络请求失败: ${err.message}`, 'text-rose-400');
         showToast(`网络异常: ${err.message}`, 'error');
+        finishConsole('❌ 请求中断', 'text-rose-400');
       }
 
       appendLog(`[DONE] 同步执行结束。`, 'text-gray-400');
-      finishConsole();
       loadForkData(token);
     }
 
@@ -908,6 +956,7 @@
       document.getElementById('sync-console-title').textContent = title;
       document.getElementById('sync-console-body').innerHTML = '';
       document.getElementById('sync-console-status').textContent = '执行中...';
+      document.getElementById('sync-console-status').className = 'text-xs text-gray-400 font-mono';
       document.getElementById('sync-console-modal').classList.remove('hidden');
       document.getElementById('sync-console-modal').classList.add('flex');
     }
@@ -921,8 +970,10 @@
       body.scrollTop = body.scrollHeight;
     }
 
-    function finishConsole() {
-      document.getElementById('sync-console-status').textContent = '已完成';
+    function finishConsole(statusText = '执行结束', statusColor = 'text-gray-400') {
+      const el = document.getElementById('sync-console-status');
+      el.textContent = statusText;
+      el.className = `text-xs font-mono font-medium ${statusColor}`;
     }
 
     // 初始化事件绑定
