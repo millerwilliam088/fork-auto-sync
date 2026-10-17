@@ -42,7 +42,7 @@
       transition: all 0.25s ease;
     }
     .glass-card:hover {
-      border-color: rgba(16, 185, 129, 0.35);
+      border-color: rgba(16, 185, 129, 0.4);
       box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 0 15px 0 rgba(16, 185, 129, 0.1);
     }
     .custom-scrollbar::-webkit-scrollbar {
@@ -53,9 +53,19 @@
       background: #374151;
       border-radius: 3px;
     }
+    .toast-slide {
+      animation: toastIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    @keyframes toastIn {
+      from { transform: translateY(-100%); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
   </style>
 </head>
 <body class="min-h-screen flex flex-col">
+
+  <!-- 浮动通知 Toast 容器 -->
+  <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col space-y-2 pointer-events-none"></div>
 
   <!-- 顶部导航栏 -->
   <header class="border-b border-gray-800 bg-dark-900/90 sticky top-0 z-40 backdrop-blur-md">
@@ -75,7 +85,8 @@
         <!-- 云端 Actions 快速入口 -->
         <a href="https://github.com/waw666waw666/fork-auto-sync/actions" target="_blank" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs text-gray-300 hover:text-white bg-dark-800 hover:bg-dark-700 border border-gray-700 transition">
           <i class="fa-brands fa-github text-sm"></i>
-          <span>GitHub Actions 运行大厅</span>
+          <span>GitHub Actions 大厅</span>
+          <i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-gray-400"></i>
         </a>
 
         <!-- Token 设置按钮 -->
@@ -92,19 +103,21 @@
 
     <!-- 顶部状态提示栏 -->
     <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 p-5 rounded-2xl bg-dark-800/80 border border-gray-800 shadow-xl">
-      <div class="flex items-center space-x-3">
-        <div class="w-3.5 h-3.5 rounded-full bg-emerald-500 animate-pulse"></div>
+      <div class="flex items-center space-x-3.5">
+        <div class="w-3.5 h-3.5 rounded-full bg-emerald-500 animate-pulse shrink-0"></div>
         <div>
-          <div class="text-sm font-semibold text-white flex items-center space-x-2">
+          <div class="text-sm font-semibold text-white flex items-center space-x-2 flex-wrap">
             <span>云端定时同步机制运行中</span>
-            <span class="text-xs font-normal text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">每日 08:00 & 20:00 自动执行</span>
+            <span class="text-xs font-normal text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20">每日 08:00 & 20:00 自动执行</span>
           </div>
-          <div class="text-xs text-gray-400 mt-0.5">
-            上次云端同步时间：<span id="label-last-run" class="text-gray-300 font-mono">加载中...</span> · 100% 运行于 GitHub 云端容器，本地代码零改动
+          <div class="text-xs text-gray-400 mt-1 flex items-center space-x-2 flex-wrap">
+            <span>上次同步快照：<strong id="label-last-run" class="text-emerald-300 font-mono font-medium">加载中...</strong></span>
+            <span>·</span>
+            <span>100% 运行于 GitHub 官方机房，本地电脑零改动零风险</span>
           </div>
         </div>
       </div>
-      <div class="flex items-center space-x-2.5 w-full lg:w-auto">
+      <div class="flex items-center space-x-2.5 w-full lg:w-auto shrink-0">
         <button id="btn-refresh" class="flex-1 lg:flex-none flex items-center justify-center space-x-1.5 px-3.5 py-2.5 rounded-xl text-xs font-medium bg-dark-700 hover:bg-dark-600 text-gray-200 border border-gray-600 transition">
           <i class="fa-solid fa-rotate-right" id="refresh-icon"></i>
           <span>刷新数据</span>
@@ -152,7 +165,7 @@
     <div class="flex items-center justify-between gap-4">
       <div class="relative flex-1 max-w-md">
         <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-gray-500 text-xs"></i>
-        <input type="text" id="input-search" placeholder="搜索仓库名或上游作者..." class="w-full pl-9 pr-4 py-2 bg-dark-800/80 border border-gray-700 rounded-lg text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:border-emerald-500 transition">
+        <input type="text" id="input-search" placeholder="搜索仓库名或上游作者... (按 / 快速定位)" class="w-full pl-9 pr-4 py-2 bg-dark-800/80 border border-gray-700 rounded-lg text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:border-emerald-500 transition">
       </div>
       <div class="text-xs text-gray-400">
         显示 <span id="visible-count" class="text-white font-semibold">0</span> 个 Fork 仓库
@@ -189,8 +202,8 @@
       </div>
 
       <p class="text-xs text-gray-400 leading-relaxed">
-        配置 Token 后，您可以直接在网页上<strong>一键唤醒 GitHub Actions 云端流水线</strong>或<strong>单点立即同步某个仓库</strong>。<br>
-        <span class="text-amber-400/90 font-medium">🔒 Token 仅存储在当前浏览器 LocalStorage 中，绝不上报给任何服务器。</span>
+        配置 Token 后，您可在本页面<strong>一键唤醒 GitHub Actions 云端流水线</strong>或<strong>单点立即同步某个仓库</strong>。<br>
+        <span class="text-amber-400/90 font-medium">🔒 Token 仅存储在当前浏览器 LocalStorage 中，绝不上报给任何外部服务器。</span>
       </p>
 
       <div class="space-y-2">
@@ -213,7 +226,7 @@
     </div>
   </div>
 
-  <!-- 云端触发反馈模态框 -->
+  <!-- 云端调度成功浮窗 -->
   <div id="cloud-trigger-modal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm hidden items-center justify-center p-4">
     <div class="bg-dark-800 border border-gray-700 rounded-2xl max-w-lg w-full p-6 space-y-5 shadow-2xl">
       <div class="flex items-center justify-between pb-2 border-b border-gray-700">
@@ -247,7 +260,7 @@
     </div>
   </div>
 
-  <!-- 单个仓库同步日志浮窗 -->
+  <!-- 单个仓库控制台日志浮窗 -->
   <div id="sync-console-modal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm hidden items-center justify-center p-4">
     <div class="bg-dark-800 border border-gray-700 rounded-2xl max-w-xl w-full p-6 space-y-4 shadow-2xl flex flex-col max-h-[85vh]">
       <div class="flex items-center justify-between pb-2 border-b border-gray-700">
@@ -277,6 +290,34 @@
 
     let allForks = [];
     let excludedList = JSON.parse(localStorage.getItem(STORAGE_KEY_EXCLUDE) || '["example-repo-to-skip"]');
+
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      const icons = {
+        success: 'fa-circle-check text-emerald-400',
+        warning: 'fa-triangle-exclamation text-amber-400',
+        error: 'fa-circle-xmark text-rose-400',
+        info: 'fa-circle-info text-cyan-400'
+      };
+      toast.className = `toast-slide pointer-events-auto flex items-center space-x-2.5 px-4 py-2.5 rounded-xl glass-card border-gray-700 shadow-2xl text-xs text-white bg-dark-800/90`;
+      toast.innerHTML = `<i class="fa-solid ${icons[type] || icons.info}"></i><span>${message}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(-8px)';
+        toast.style.transition = 'all 0.25s ease';
+        setTimeout(() => toast.remove(), 250);
+      }, 3000);
+    }
+
+    function copyToClipboard(text, desc = '内容') {
+      navigator.clipboard.writeText(text).then(() => {
+        showToast(`已复制 ${desc}`, 'success');
+      }).catch(() => {
+        showToast('复制失败，请手动复制', 'warning');
+      });
+    }
 
     function getToken() {
       return localStorage.getItem(STORAGE_KEY_TOKEN) || '';
@@ -314,8 +355,10 @@
     function toggleExclude(repoName) {
       if (isExcluded(repoName)) {
         saveExcluded(excludedList.filter(r => r.toLowerCase() !== repoName.toLowerCase()));
+        showToast(`已开启 [${repoName}] 自动同步`, 'success');
       } else {
         saveExcluded([...excludedList, repoName]);
+        showToast(`已锁定排除 [${repoName}] 不再自动更新`, 'info');
       }
     }
 
@@ -359,55 +402,10 @@
         renderList();
         updateStats();
       } catch (err) {
-        console.warn('加载本地 status.json 失败，尝试通过 GitHub API 读取:', err);
-        // 如果 status.json 暂时没有，若有 Token 则尝试 GitHub API 补充
-        if (getToken()) {
-          loadViaGitHubApi();
-        } else {
-          document.getElementById('repo-list').innerHTML = `
-            <div class="col-span-full py-12 text-center text-rose-400 glass-card rounded-2xl">
-              <i class="fa-solid fa-triangle-exclamation text-3xl mb-2"></i>
-              <p class="text-sm font-semibold">云端数据载入中，请稍后刷新页面</p>
-            </div>
-          `;
-        }
+        console.warn('加载本地 status.json 失败:', err);
+        showToast('读取云端数据快照失败，请稍后刷新', 'error');
       } finally {
         icon.classList.remove('fa-spin');
-      }
-    }
-
-    // 备用：通过 GitHub API 在线直接读取
-    async function loadViaGitHubApi() {
-      try {
-        const token = getToken();
-        const res = await fetch('https://api.github.com/user/repos?per_page=100', {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Accept': 'application/vnd.github+json'
-          }
-        });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const repos = await res.json();
-        const forks = repos.filter(r => r.fork === true);
-
-        allForks = forks.map(r => ({
-          name: r.name,
-          full_name: r.full_name,
-          html_url: r.html_url,
-          description: r.description || '暂无描述',
-          branch: r.default_branch,
-          parent: '点击卡片查看',
-          parent_url: r.html_url,
-          version: '最新',
-          updated_at: r.pushed_at || r.updated_at,
-          status: 'up-to-date',
-          detail: '已与上游同步'
-        }));
-
-        renderList();
-        updateStats();
-      } catch (e) {
-        console.error(e);
       }
     }
 
@@ -446,63 +444,129 @@
       container.innerHTML = filtered.map(repo => {
         const excluded = isExcluded(repo.name);
         const isConflict = repo.status === 'conflict';
+        const isBehind = repo.behind_by && repo.behind_by > 0;
 
+        // 状态徽章：做成【可点击直达目标版本/比对页】的高级交互按钮
         let statusBadge = '';
+        const compareUrl = `https://github.com/${repo.full_name}/compare`;
+        const commitsUrl = `https://github.com/${repo.full_name}/commits/${repo.branch || 'main'}`;
+
         if (excluded) {
-          statusBadge = `<span class="px-2 py-0.5 text-xs rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/20 font-medium flex items-center space-x-1"><i class="fa-solid fa-lock text-[10px]"></i><span>已锁定排除</span></span>`;
+          statusBadge = `
+            <span class="px-2.5 py-1 text-xs rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/25 font-medium inline-flex items-center space-x-1.5 shadow-sm" title="该仓库已在设置中锁定，不再跟进上游更新">
+              <i class="fa-solid fa-lock text-[10px]"></i>
+              <span>已锁定排除</span>
+            </span>`;
         } else if (isConflict) {
-          statusBadge = `<span class="px-2 py-0.5 text-xs rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 font-medium flex items-center space-x-1"><i class="fa-solid fa-shield-halved text-[10px]"></i><span>冲突安全保护</span></span>`;
+          statusBadge = `
+            <a href="${compareUrl}" target="_blank" class="px-2.5 py-1 text-xs rounded-full bg-amber-500/15 text-amber-300 hover:bg-amber-500/25 border border-amber-500/30 font-medium inline-flex items-center space-x-1.5 transition shadow-sm hover:scale-105" title="点击跳转查看代码冲突详情">
+              <i class="fa-solid fa-shield-halved text-[10px]"></i>
+              <span>冲突安全保护</span>
+              <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-amber-400/80"></i>
+            </a>`;
+        } else if (isBehind) {
+          statusBadge = `
+            <a href="${compareUrl}" target="_blank" class="px-2.5 py-1 text-xs rounded-full bg-amber-500/15 text-amber-300 hover:bg-amber-500/25 border border-amber-500/30 font-medium inline-flex items-center space-x-1.5 transition shadow-sm hover:scale-105" title="点击跳转对比上游差异代码">
+              <i class="fa-solid fa-clock-rotate-left text-[10px]"></i>
+              <span>落后上游 ${repo.behind_by} 提交</span>
+              <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-amber-400/80"></i>
+            </a>`;
         } else {
-          statusBadge = `<span class="px-2 py-0.5 text-xs rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium flex items-center space-x-1"><i class="fa-solid fa-check text-[10px]"></i><span>已与上游同步</span></span>`;
+          statusBadge = `
+            <a href="${commitsUrl}" target="_blank" class="px-2.5 py-1 text-xs rounded-full bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25 border border-emerald-500/30 font-medium inline-flex items-center space-x-1.5 transition shadow-sm hover:scale-105" title="点击跳转查看我的 Fork 最新 Commit">
+              <i class="fa-solid fa-check text-[10px]"></i>
+              <span>已是最新</span>
+              <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-emerald-400/80"></i>
+            </a>`;
         }
 
+        // Tag 版本标签（带外链跳转）
+        const releaseUrl = `https://github.com/${repo.full_name}/releases`;
         const tagBadge = repo.version && repo.version !== '无 Release'
-          ? `<span class="px-2 py-0.5 text-xs rounded bg-gray-800 text-gray-300 border border-gray-700 font-mono text-[11px]"><i class="fa-solid fa-tag text-[9px] mr-1 text-emerald-400"></i>${repo.version}</span>`
-          : `<span class="px-2 py-0.5 text-xs rounded bg-gray-800/60 text-gray-500 border border-gray-800 font-mono text-[11px]">Git HEAD</span>`;
+          ? `<a href="${releaseUrl}" target="_blank" class="px-2 py-0.5 text-xs rounded bg-dark-900 text-gray-300 hover:text-white border border-gray-700 font-mono text-[11px] inline-flex items-center space-x-1 hover:border-emerald-500 transition"><i class="fa-solid fa-tag text-[9px] text-emerald-400"></i><span>${repo.version}</span><i class="fa-solid fa-arrow-up-right-from-square text-[8px] text-gray-500"></i></a>`
+          : `<span class="px-2 py-0.5 text-xs rounded bg-dark-900/60 text-gray-500 border border-gray-800 font-mono text-[11px]">Git HEAD</span>`;
+
+        // 分支标签（带外链跳转）
+        const branchUrl = `https://github.com/${repo.full_name}/tree/${repo.branch || 'main'}`;
 
         return `
           <div class="glass-card rounded-2xl p-5 flex flex-col justify-between space-y-4">
-            <div class="space-y-3">
-              <div class="flex items-start justify-between gap-2">
-                <div>
-                  <a href="${repo.html_url}" target="_blank" class="text-base font-bold text-white hover:text-emerald-400 transition flex items-center space-x-1.5">
-                    <span>${repo.name}</span>
-                    <i class="fa-solid fa-arrow-up-right-from-square text-[11px] text-gray-500"></i>
-                  </a>
-                  <div class="text-xs text-gray-400 mt-1 flex items-center space-x-1">
-                    <span>上游项目:</span>
-                    <a href="${repo.parent_url || '#'}" target="_blank" class="text-gray-300 hover:text-emerald-300 transition font-mono">${repo.parent || '未知上游'}</a>
+            <div class="space-y-3.5">
+
+              <!-- 顶部两行：左侧我的Fork+上游链接，右侧状态跳转按钮 -->
+              <div class="flex items-start justify-between gap-3">
+                <div class="space-y-1.5 flex-1 min-w-0">
+                  
+                  <!-- 第一行：我的 Fork 仓库名 + 外链小图标 + 一键复制克隆链接 -->
+                  <div class="flex items-center space-x-2">
+                    <a href="${repo.html_url}" target="_blank" class="text-base font-bold text-white hover:text-emerald-400 transition flex items-center space-x-1.5 group truncate">
+                      <span class="truncate">${repo.name}</span>
+                      <i class="fa-solid fa-arrow-up-right-from-square text-[11px] text-gray-400 group-hover:text-emerald-400 transition shrink-0"></i>
+                    </a>
+
+                    <!-- 复制克隆地址小按钮 -->
+                    <button onclick="copyToClipboard('${repo.html_url}.git', 'Git 克隆链接')" class="text-gray-500 hover:text-emerald-400 text-xs transition p-1" title="复制 Git Clone 地址">
+                      <i class="fa-regular fa-copy"></i>
+                    </button>
                   </div>
+
+                  <!-- 第二行：上游原项目 + 外链小图标 -->
+                  <div class="text-xs text-gray-400 flex items-center space-x-1.5 flex-wrap">
+                    <span class="text-gray-500 shrink-0">上游来源:</span>
+                    <a href="${repo.parent_url || '#'}" target="_blank" class="text-gray-300 hover:text-emerald-300 transition font-mono inline-flex items-center space-x-1 group">
+                      <span class="underline decoration-gray-600 group-hover:decoration-emerald-400">${repo.parent || '未知上游'}</span>
+                      <i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-gray-500 group-hover:text-emerald-300 transition"></i>
+                    </a>
+                  </div>
+
                 </div>
-                <div>${statusBadge}</div>
+
+                <!-- 右侧：可点击的状态按钮 (已是最新 / 落后上游 / 冲突保护) -->
+                <div class="shrink-0 mt-0.5">
+                  ${statusBadge}
+                </div>
               </div>
 
-              <p class="text-xs text-gray-400 line-clamp-2">${repo.description || '暂无描述'}</p>
+              <!-- 仓库描述 -->
+              <p class="text-xs text-gray-400 line-clamp-2 leading-relaxed">${repo.description || '暂无描述'}</p>
 
-              <div class="grid grid-cols-2 gap-2 pt-2.5 border-t border-gray-800 text-xs">
+              <!-- 元数据网格：版本、分支、最后同步时间 -->
+              <div class="grid grid-cols-2 gap-2 pt-3 border-t border-gray-800 text-xs">
                 <div>
-                  <span class="text-gray-500 block text-[11px]">代码版本 / Tag</span>
+                  <span class="text-gray-500 block text-[11px]">代码版本 / Release</span>
                   <div class="mt-1">${tagBadge}</div>
                 </div>
+
                 <div>
                   <span class="text-gray-500 block text-[11px]">跟踪分支</span>
-                  <div class="mt-1 font-mono text-gray-300 text-xs bg-dark-900 px-2 py-0.5 rounded w-max border border-gray-800">${repo.branch || 'main'}</div>
+                  <div class="mt-1">
+                    <a href="${branchUrl}" target="_blank" class="font-mono text-gray-300 hover:text-white text-xs bg-dark-900 px-2 py-0.5 rounded border border-gray-800 hover:border-gray-600 inline-flex items-center space-x-1 transition">
+                      <i class="fa-solid fa-code-branch text-[10px] text-emerald-400"></i>
+                      <span>${repo.branch || 'main'}</span>
+                    </a>
+                  </div>
                 </div>
+
                 <div class="col-span-2">
                   <span class="text-gray-500 block text-[11px]">最后同步 / 更新时间</span>
-                  <div class="mt-0.5 text-gray-300 font-mono text-xs">${formatDate(repo.updated_at)}</div>
+                  <div class="mt-0.5 text-gray-300 font-mono text-xs flex items-center space-x-1.5">
+                    <i class="fa-regular fa-clock text-gray-500 text-[11px]"></i>
+                    <span>${formatDate(repo.updated_at)}</span>
+                  </div>
                 </div>
               </div>
+
             </div>
 
+            <!-- 卡片底部操作栏 -->
             <div class="flex items-center justify-between pt-3 border-t border-gray-800">
-              <label class="flex items-center space-x-2 text-xs cursor-pointer text-gray-400 hover:text-gray-200">
+              <label class="flex items-center space-x-2 text-xs cursor-pointer text-gray-400 hover:text-gray-200 select-none">
                 <input type="checkbox" ${!excluded ? 'checked' : ''} onchange="toggleExclude('${repo.name}')" class="rounded bg-dark-900 border-gray-700 text-emerald-500 focus:ring-0">
                 <span>自动同步</span>
               </label>
 
-              <button onclick="syncSingleRepo('${repo.full_name}', '${repo.branch || 'main'}')" class="px-3.5 py-1.5 rounded-lg text-xs font-medium bg-emerald-600/90 hover:bg-emerald-500 text-white flex items-center space-x-1.5 transition shadow-sm">
-                <i class="fa-solid fa-arrows-rotate"></i>
+              <button onclick="syncSingleRepo('${repo.full_name}', '${repo.branch || 'main'}')" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white flex items-center space-x-1.5 transition shadow-sm active:scale-95">
+                <i class="fa-solid fa-arrows-rotate text-[11px]"></i>
                 <span>立即同步</span>
               </button>
             </div>
@@ -537,12 +601,13 @@
 
         if (res.status === 204 || res.ok) {
           showCloudTriggerModal();
+          showToast('已唤醒 GitHub Actions 云端同步！', 'success');
         } else {
           const errData = await res.json();
-          alert(`触发失败 (${res.status}): ${errData.message || '请检查 Token 权限'}`);
+          showToast(`调度失败: ${errData.message || '请检查 Token 权限'}`, 'error');
         }
       } catch (err) {
-        alert(`网络异常: ${err.message}`);
+        showToast(`网络异常: ${err.message}`, 'error');
       } finally {
         btn.innerHTML = originalHtml;
         btn.disabled = false;
@@ -574,15 +639,20 @@
         const data = await res.json();
         if (res.status === 200) {
           appendLog(`✅ 成功合并上游最新提交: ${data.message || 'Synced successfully!'}`, 'text-emerald-400');
+          showToast(`[${fullName}] 成功同步最新提交！`, 'success');
         } else if (res.status === 409) {
           appendLog(`⚠️ 检测到代码冲突，GitHub 已自动保护未做合并: ${data.message}`, 'text-amber-400');
+          showToast(`[${fullName}] 存在代码冲突，已安全保护`, 'warning');
         } else if (res.status === 422) {
           appendLog(`ℹ️ 当前分支已与上游完全一致，无需合并`, 'text-cyan-400');
+          showToast(`[${fullName}] 已是最新版本`, 'info');
         } else {
           appendLog(`❌ 错误 ${res.status}: ${data.message}`, 'text-rose-400');
+          showToast(`同步失败: ${data.message}`, 'error');
         }
       } catch (err) {
         appendLog(`❌ 网络请求失败: ${err.message}`, 'text-rose-400');
+        showToast(`网络异常: ${err.message}`, 'error');
       }
 
       appendLog(`✨ 同步结束。`, 'text-gray-400');
@@ -650,17 +720,19 @@
       document.getElementById('btn-save-token').addEventListener('click', () => {
         const val = document.getElementById('input-token').value;
         if (!val.trim()) {
-          alert('请输入有效的 GitHub Token');
+          showToast('请输入有效的 GitHub Token', 'warning');
           return;
         }
         saveToken(val);
         hideTokenModal();
+        showToast('Token 保存并绑定成功！', 'success');
         loadCloudData();
       });
 
       document.getElementById('btn-clear-token').addEventListener('click', () => {
         saveToken('');
         hideTokenModal();
+        showToast('已清除本地 Token', 'info');
         loadCloudData();
       });
 
@@ -681,9 +753,20 @@
       document.getElementById('btn-close-trigger-modal').addEventListener('click', hideCloudTriggerModal);
       document.getElementById('btn-dismiss-trigger').addEventListener('click', hideCloudTriggerModal);
 
-      document.getElementById('btn-refresh').addEventListener('click', loadCloudData);
+      document.getElementById('btn-refresh').addEventListener('click', () => {
+        showToast('正在从云端快照刷新数据...', 'info');
+        loadCloudData();
+      });
       document.getElementById('btn-trigger-cloud').addEventListener('click', triggerCloudSync);
       document.getElementById('input-search').addEventListener('input', renderList);
+
+      // 键盘快捷键 '/' 聚焦搜索框
+      document.addEventListener('keydown', (e) => {
+        if (e.key === '/' && document.activeElement.tagName !== 'INPUT') {
+          e.preventDefault();
+          document.getElementById('input-search').focus();
+        }
+      });
 
       // 初次秒级载入云端数据
       loadCloudData();
