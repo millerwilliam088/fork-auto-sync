@@ -1,106 +1,191 @@
-# ForkSync · 全自动 Fork 仓库云端同步器
+<div align="center">
+
+# ForkSync Hub
+
+**Automated Cloud-Native Upstream Synchronization & Interactive Web Dashboard for GitHub Forks**
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Architecture-100%25_Serverless-10b981?style=flat-square&logo=github" alt="Serverless" />
-  <img src="https://img.shields.io/badge/License-MIT-blue?style=flat-square" alt="License" />
-  <img src="https://img.shields.io/badge/Local_Storage-Zero_Pollution-emerald?style=flat-square" alt="Zero Local Pollution" />
-  <img src="https://img.shields.io/badge/GitHub_Actions-Automated_Sync-black?style=flat-square&logo=githubactions" alt="GitHub Actions" />
+  <b>English</b> · 
+  <a href="README_zh.md">简体中文</a> · 
+  <a href="README_zh_tw.md">繁體中文</a> · 
+  <a href="README_ja.md">日本語</a>
 </p>
 
-> 🌐 **官方 Web 控制台在线体验**：**[https://waw666waw666.github.io/fork-auto-sync/](https://waw666waw666.github.io/fork-auto-sync/)**  
-> 💡 *无需购买任何云服务器，100% 运行于 GitHub 官方机房与 GitHub Pages。本地电脑零负担、代码零污染！*
+<p align="center">
+  <a href="https://github.com/waw666waw666/fork-auto-sync/actions/workflows/sync.yml"><img src="https://img.shields.io/github/actions/workflow/status/waw666waw666/fork-auto-sync/sync.yml?branch=main&style=for-the-badge&logo=githubactions&logoColor=white&label=Auto%20Sync" alt="Actions Status" /></a>
+  <a href="https://github.com/waw666waw666/fork-auto-sync/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-10b981?style=for-the-badge" alt="License: MIT" /></a>
+  <img src="https://img.shields.io/badge/Architecture-100%25_Serverless-0ea5e9?style=for-the-badge&logo=github&logoColor=white" alt="100% Serverless" />
+  <img src="https://img.shields.io/badge/Privacy-Zero--Trust_Local-8b5cf6?style=for-the-badge&logo=security&logoColor=white" alt="Zero Trust" />
+  <img src="https://img.shields.io/badge/Local_Storage-Zero_Pollution-emerald?style=for-the-badge" alt="Zero Local Pollution" />
+</p>
+
+<p align="center">
+  <b>Keep all your forked repositories effortlessly in sync with upstream.</b><br />
+  <i>100% serverless, zero server maintenance costs, zero local machine pollution, and zero third-party token leakage.</i>
+</p>
+
+<p align="center">
+  <a href="#-quick-start-1-minute-setup">Quick Start</a> •
+  <a href="#-why-forksync-hub">Why ForkSync?</a> •
+  <a href="#-key-features">Key Features</a> •
+  <a href="#-architecture">Architecture</a> •
+  <a href="#-security--privacy">Security & Privacy</a> •
+  <a href="#-configuration">Configuration</a> •
+  <a href="#-faq">FAQ</a> •
+  <a href="#-license">License</a>
+</p>
 
 ---
 
-## 🎯 为什么需要本项目？
+</div>
 
-在 GitHub 上 Fork 了大量优秀的开源项目后，原作者（Upstream）一旦更新，你的 Fork 分支就会逐渐落后（Behind）。
-- **传统方式的痛点**：必须定期逐个打开每个仓库的 GitHub 网页点击 `Sync fork`，费时费力；或者在本地机器跑脚本，既要耗电开机，又容易产生 Git 脏分支与本地冲突。
-- **现存工具的局限**：市面上的 Action 脚本通常**没有任何可视化界面**，黑盒运行，无法随时直观查看版本与更新记录；而第三方同步 SaaS 则需要将个人核心 Token 上传给不知名的外部服务器，存在重大安全隐患。
-
-**ForkSync** 彻底解决了这一切：打造了一套**纯前端 Serverless 交互控制面 + GitHub Actions 官方容器执行引擎**，无需自己掏钱买服务器，只要 1 键 Fork 即可免费拥有专属的自动化同步控制台！
+> [!TIP]
+> 🌐 **Interactive Live Web Demo**: **[https://waw666waw666.github.io/fork-auto-sync/](https://waw666waw666.github.io/fork-auto-sync/)**  
+> *100% client-side zero-trust security — your access credentials stay strictly inside your browser's local memory and are never uploaded to any remote server.*
 
 ---
 
-## ✨ 核心特性
+## 🎯 Why ForkSync Hub?
 
-- 🌐 **沉浸式 Web 控制面板**：采用深色工程极简设计（Obsidian Dark + Emerald Green），直观查看全部 Fork 仓库的跟踪分支、代码版本（Release Tag）、上游作者及最后同步时间。
-- 🔒 **端到端纯前端零信任安全**：访问凭据（Personal Access Token）**仅保存在当前浏览器的本地存储**中，直接与 GitHub 官方 REST API 握手通讯。绝无任何第三方中转服务器，代码 100% 开源审计。
-- ⚙️ **Web 端实时调度控制**：在网页端即可自由切换云端执行周期（极速每 2 小时 / 每 6 小时 / 每日 2 次 / 每日 09:00），直接通过 GitHub API 双向写回 `.github/workflows/sync.yml` 与 `config.json`，无需本地终端。
-- 🛡️ **智能上游注销识别（独家特性）**：自动检测上游原项目是否已被原作者注销或删库（HTTP 404）。遇到已删母库时，自动标记为「📦 上游已删 · 绝版镜像」并安全锁定，避免误报 409 冲突。
-- ⚡ **双轨同步机制**：
-  - **网页直调**：在卡片上直接点击「立即同步」，浏览器端秒级直连 GitHub API 完成单库 upstream 合并并实时输出执行日志。
-  - **云端全量**：点击顶部「立即同步全部 Fork」，一键唤醒 GitHub Actions 云端容器全量执行，支持毫秒级轮询与耗时统计。
-- 🛑 **细粒度黑白名单**：支持在界面中随时勾选或排除特定仓库，不愿随上游改动的仓库可一键锁定。
+When you fork dozens or hundreds of open-source projects on GitHub, keeping them updated with the upstream creators becomes a tedious manual chore:
+- **Pain Points of Traditional Workflows**: You must repeatedly visit every repository's GitHub page to click `Sync fork`, or maintain scheduled scripts on a personal server or local PC—wasting electricity, risking disk pollution, and managing merge conflicts blindly.
+- **Flaws of Existing Tools**: Conventional Actions scripts operate inside a headless black box with **zero visual dashboard**, offering no visibility into release tags or sync history. Meanwhile, third-party sync SaaS services demand full access tokens sent to unknown external servers—creating catastrophic security risks.
+
+**ForkSync Hub changes everything**: It combines a **modern Obsidian-dark serverless web dashboard** with a **GitHub Actions native orchestration engine**. You do not need to buy or configure servers—simply **1-Click Fork** this repository to get your own private cloud synchronization control center!
 
 ---
 
-## 🏗️ 架构原理解析
+## ✨ Key Features
 
+| Feature | Description |
+| :--- | :--- |
+| 🌐 **Immersive Web Dashboard** | Precision Obsidian Dark (`#0b0f19`) and Emerald Green engineering UI. Monitor all your forked repositories, tracked branches, upstream author, release versions, and synchronization statuses at a glance. |
+| 🔒 **End-to-End Zero-Trust Security** | Your GitHub Personal Access Token (PAT) is stored **exclusively in your browser's local storage**. The web application speaks directly with the official GitHub REST API over HTTPS. Zero third-party relay servers, 100% open-source and auditable. |
+| ⚙️ **Real-Time Web Schedule Control** | Switch cloud sync frequency directly from the browser (e.g. Every 2h, Every 6h, Twice Daily, Daily 09:00). Changes are committed directly back to `.github/workflows/sync.yml` via GitHub API without touching a local terminal. |
+| 📦 **Upstream Deletion Safeguard** | Automatically inspects upstream repository existence. If the original upstream creator has deleted their repo or deleted their account (HTTP 404), ForkSync Hub marks it as `📦 Upstream Deleted · Exclusive Mirror` and locks it, preventing destructive 409 errors. |
+| ⚡ **Dual-Track Sync Architecture** | **Instant Single-Repo Sync**: Direct client-side `merge-upstream` with live streaming console logs. <br/>**Full Cloud Sync**: 1-click trigger GitHub Actions cloud container with real-time poll tracking and execution duration metrics. |
+| 🛑 **Granular Rules & Exclusion List** | Include or exclude specific repositories dynamically with toggle checkboxes. Repositories you want to keep static will never be overwritten. |
+| 📱 **Responsive & Accessible** | Optimized for mobile, tablet, and ultra-wide displays with single clean scroll containers, zero scroll bleed, and keyboard shortcuts (`/` for search, `Esc` to close modals). |
+
+---
+
+## 🏗️ Architecture
+
+```mermaid
+flowchart TD
+    subgraph Client ["Client Browser (GitHub Pages / Static SPA)"]
+        UI["Obsidian-Dark Web Dashboard"]
+        Storage[("Local Secure Storage\n(Token Never Leaves Browser)")]
+        UI <--> Storage
+    end
+
+    subgraph GitHub ["GitHub Infrastructure (Official Platform)"]
+        API["GitHub REST API\n(v2022-11-28)"]
+        Actions["GitHub Actions Runner\n(Ubuntu Environment)"]
+        Forks["Your Forked Repositories"]
+        Upstream["Original Upstream Repositories"]
+    end
+
+    UI -- "1. Query repos & trigger dispatches" --> API
+    API -- "2. Trigger scheduled or manual sync" --> Actions
+    Actions -- "3. Fast-forward merge upstream branches" --> Forks
+    Actions -- "4. Query latest upstream commits" --> Upstream
+    UI -- "Instant single-repo merge" --> Forks
 ```
-                ┌──────────────────────────────────────────────┐
-                │        用户浏览器 (GitHub Pages 静态托管)       │
-                │   - 本地安全凭证锁屏 (Token 仅留于本地)           │
-                │   - 实时轮询 / 单库同步 / 调度频率一键修改       │
-                └──────────────┬───────────────────────────────┘
-                               │ HTTPS (GitHub REST API 直接握手)
-                               ▼
-                ┌──────────────────────────────────────────────┐
-                │          GitHub 官方平台 (零第三方服务)         │
-                ├──────────────────────┬───────────────────────┤
-                │                      │                       │
-                ▼                      ▼                       ▼
-      ┌──────────────────┐   ┌──────────────────┐    ┌──────────────────┐
-      │  GitHub Actions  │   │  Fork 仓库集群    │    │ 上游原始母项目   │
-      │  (定时/按需调度) │   │ (自动 Fast-Forward│    │ (Upstream)       │
-      │  ubuntu-latest   │   │  或智能冲突保护)  │    │ 最新提交检测     │
-      └──────────────────┘   └──────────────────┘    └──────────────────┘
+
+---
+
+## 🚀 Quick Start (1-Minute Setup)
+
+Deploying your own private synchronization station takes less than 60 seconds and zero coding:
+
+### Step 1: Fork this Repository
+Click the **Fork** button in the top right corner of this repository to clone it into your personal GitHub account.
+
+### Step 2: Configure Repository Secret
+1. Go to GitHub [Personal Access Tokens (Classic)](https://github.com/settings/tokens).
+2. Generate a new token with the following scopes:
+   - `repo` (Full control of private and public repositories)
+   - `workflow` (Required to update workflow files and dispatch Actions)
+3. In your forked repository, navigate to **Settings** → **Secrets and variables** → **Actions**.
+4. Click **New repository secret**:
+   - **Name**: `SYNC_TOKEN`
+   - **Secret**: Paste the Personal Access Token generated above.
+
+### Step 3: Enable GitHub Pages Dashboard
+1. In your forked repository, go to **Settings** → **Pages**.
+2. Under **Build and deployment** → **Source**, select **GitHub Actions**.
+3. The built-in workflow will automatically build and publish your web console to:
+   ```
+   https://<your-username>.github.io/fork-auto-sync/
+   ```
+4. Visit your URL, enter your token into the private lock screen, and enjoy your automated synchronization dashboard!
+
+---
+
+## ⚙️ Configuration
+
+ForkSync Hub can be configured either through the **interactive web settings modal** or by editing `config.json` directly in the repository:
+
+```json
+{
+  "description": "ForkSync configuration file for repository exclusion and targeting.",
+  "exclude": [
+    "repo-to-skip",
+    "username/archived-project"
+  ],
+  "only": []
+}
 ```
 
----
-
-## 🚀 1 分钟一键部署你自己的控制台
-
-本项目完全支持开箱即用，任何人只需三步即可搭建属于自己的全自动同步平台：
-
-### 第一步：Fork 本项目
-点击本页面右上角的 **Fork** 按钮，将本仓库复制到你的 GitHub 个人账号下。
-
-### 第二步：配置 GitHub Actions 密钥
-1. 访问 GitHub [Tokens 设置页面](https://github.com/settings/tokens)，生成一个 **Personal Access Token (Classic)**。
-   - 勾选权限：`repo`（完整仓库读写）与 `workflow`（更新 Actions 定时周期与调度）。
-2. 进入你 Fork 出来的仓库主页，点击 **Settings** -> **Secrets and variables** -> **Actions**。
-3. 点击 **New repository secret**：
-   - Name 填入：`SYNC_TOKEN`
-   - Secret 填入：刚才生成的 GitHub Token。
-
-### 第三步：开启 GitHub Pages 专属网页
-1. 进入仓库 **Settings** -> **Pages**。
-2. 在 **Build and deployment** 下的 **Source** 中，选择 **GitHub Actions**（本仓库已自带自动部署流水线）。
-3. 稍等约 1 分钟，流水线运行完毕后，页面顶部就会生成你的专属域名：`https://<你的用户名>.github.io/fork-auto-sync/`。
-4. 打开该链接，输入你的 Token 解锁，即可随心所欲管理并自动同步你名下的所有 Fork 仓库！
+- `exclude`: List of repository names or full names (`owner/repo`) that should **never** be synchronized with upstream.
+- `only`: (Optional) If populated, only the specified repositories will be synchronized.
 
 ---
 
-## 常见问题 (FAQ)
+## 🔒 Security & Privacy Architecture
+
+Security is the core design pillar of ForkSync Hub:
+
+1. **Zero Intermediate Servers**: The dashboard runs purely on static GitHub Pages. No backend database, no proxy server, and no third-party analytics.
+2. **Local-Only Credential Persistence**: Your GitHub Token is only stored in browser `localStorage` or `sessionStorage` (user-selectable). It is never sent anywhere except directly to `https://api.github.com`.
+3. **Conflict Protection**: When upstream changes conflict with local commits (HTTP 409), the system will **never** force-overwrite your code. It halts safely and alerts you on the dashboard.
+4. **Upstream 404 Archival Protection**: If an upstream author deletes their repository, your fork is safely locked as an irreplaceable permanent archive.
+
+---
+
+## ❓ Frequently Asked Questions (FAQ)
 
 <details>
-<summary><b>Q1: 遇到上游母项目与我的分支发生代码冲突怎么办？</b></summary>
-系统内置严格的安全防御策略。当 GitHub API 检测到合并冲突（HTTP 409）时，Actions 与 Web 端均会自动保持现状，<b>绝不强行覆写破坏你的分支</b>，并在面板上清晰标注「冲突安全保护」，你可以随时在 GitHub 网页上进行可视化对比。
+<summary><b>Q: Does this cost anything to run?</b></summary>
+<b>No.</b> Both GitHub Actions and GitHub Pages are 100% free for public repositories. Even for private forks, GitHub provides generous free monthly Actions minutes (2,000+ minutes/month), which is more than enough for thousands of sync runs.
 </details>
 
 <details>
-<summary><b>Q2: 为什么我的 Token 需要 workflow 权限？</b></summary>
-GitHub 官方安全规则要求：修改 `.github/workflows/sync.yml`（例如在网页端切换定时周期）或调度 Actions 运行必须具备 `workflow` 作用域。此 Token 仅在你自己的浏览器与 GitHub 之间传输，请放心授权。
+<summary><b>Q: Why does the token require the <code>workflow</code> permission?</b></summary>
+GitHub security policies require the <code>workflow</code> scope whenever a tool modifies <code>.github/workflows/*.yml</code> files (such as when you adjust the cron schedule from the web dashboard) or dispatches workflow runs. Your token remains strictly between your browser and GitHub.
 </details>
 
 <details>
-<summary><b>Q3: 上游作者删库了会怎样？</b></summary>
-系统会自动向上游探测存活状态。一旦发现母库 404，控制面板会自动挂起同步，提示「上游已删 · 绝版镜像」，保护你账号里的唯一代码备份完好无损。
+<summary><b>Q: What happens if an upstream repository has code conflicts with my fork?</b></summary>
+The synchronization engine adheres to a strict safe-merge protocol. If a conflict occurs, GitHub returns HTTP 409 and the runner automatically preserves your commits without altering code. The dashboard will tag the repository with a warning badge and provide a one-click diff comparison link.
+</details>
+
+<details>
+<summary><b>Q: Can I use this for private repositories?</b></summary>
+Yes. Ensure your Personal Access Token has the <code>repo</code> scope, and all your private forks will appear securely in your dashboard.
 </details>
 
 ---
 
-## 📄 开源协议
+## 🤝 Contributing
 
-本项目采用 [MIT License](LICENSE) 许可协议，欢迎自由 Fork、定制与传播！
+Contributions, issues, and feature requests are welcome!  
+Feel free to check out the [issues page](https://github.com/waw666waw666/fork-auto-sync/issues).
+
+---
+
+## 📄 License
+
+This project is open-sourced under the [MIT License](LICENSE).  
+Feel free to fork, customize, and share!

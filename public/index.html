@@ -166,7 +166,7 @@
 
         <!-- 右侧控制区 -->
         <div class="flex items-center space-x-3">
-          <a href="https://github.com/waw666waw666/fork-auto-sync/actions" id="link-actions-center" target="_blank" class="hidden sm:flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs text-gray-300 hover:text-white bg-dark-800 hover:bg-dark-700 border border-gray-700 transition">
+          <a href="https://github.com" id="link-actions-center" target="_blank" class="hidden sm:flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs text-gray-300 hover:text-white bg-dark-800 hover:bg-dark-700 border border-gray-700 transition">
             <i class="fa-brands fa-github text-sm"></i>
             <span>Actions 调度中心</span>
           </a>
@@ -176,9 +176,9 @@
             <span class="hidden sm:inline">调度设置</span>
           </button>
 
-          <a id="user-profile-link" href="https://github.com/waw666waw666" target="_blank" class="flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-dark-800 hover:bg-dark-700 border border-gray-700 hover:border-emerald-500/50 text-xs text-gray-300 hover:text-white transition group" title="点击访问我的 GitHub 个人主页">
-            <img id="user-avatar" class="w-4 h-4 rounded-full bg-gray-700 group-hover:ring-1 group-hover:ring-emerald-400 transition" src="" alt="avatar">
-            <span id="user-login" class="font-medium text-white group-hover:text-emerald-400 transition">waw666waw666</span>
+          <a id="user-profile-link" href="https://github.com" target="_blank" class="flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-dark-800 hover:bg-dark-700 border border-gray-700 hover:border-emerald-500/50 text-xs text-gray-300 hover:text-white transition group" title="点击访问 GitHub 个人主页">
+            <img id="user-avatar" class="w-4 h-4 rounded-full bg-gray-700 group-hover:ring-1 group-hover:ring-emerald-400 transition" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%239ca3af'%3E%3Cpath d='M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0Zm4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4Zm-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10c-2.29 0-3.516.68-4.168 1.332-.678.678-.83 1.418-.832 1.664h10Z'/%3E%3C/svg%3E" alt="avatar">
+            <span id="user-login" class="font-medium text-white group-hover:text-emerald-400 transition">GitHub User</span>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-gray-500 group-hover:text-emerald-400 transition"></i>
           </a>
 
@@ -476,10 +476,10 @@
         return `${owner}/${repo}`;
       }
       const currentLogin = document.getElementById('user-login')?.textContent?.trim();
-      if (currentLogin && currentLogin !== 'waw666waw666' && currentLogin !== '加载中...') {
+      if (currentLogin && currentLogin !== 'GitHub User' && currentLogin !== '加载中...') {
         return `${currentLogin}/fork-auto-sync`;
       }
-      return 'waw666waw666/fork-auto-sync';
+      return 'fork-auto-sync';
     }
 
     function showToast(message, type = 'info') {
@@ -990,7 +990,7 @@
         saveToken(token);
 
         document.getElementById('user-avatar').src = userData.avatar_url || '';
-        document.getElementById('user-login').textContent = userData.login || 'waw666waw666';
+        document.getElementById('user-login').textContent = userData.login || 'GitHub User';
 
         // 动态适配用户 GitHub 个人主页链接
         const userProfileLink = document.getElementById('user-profile-link');
