@@ -2,157 +2,157 @@
 
 # ForkSync Hub
 
-**Automated Cloud-Native Upstream Synchronization & Interactive Web Dashboard for GitHub Forks**
+**全自动 GitHub Fork 仓库云端同步引擎与交互式 Web 控制台**
 
 <p align="center">
-  <b>English</b> · 
-  <a href="README_zh.md">简体中文</a> · 
+  <b>简体中文</b> · 
+  <a href="README_en.md">English</a> · 
   <a href="README_zh_tw.md">繁體中文</a> · 
   <a href="README_ja.md">日本語</a>
 </p>
 
 <p align="center">
-  <a href="https://github.com/waw666waw666/fork-auto-sync/actions/workflows/sync.yml"><img src="https://img.shields.io/github/actions/workflow/status/waw666waw666/fork-auto-sync/sync.yml?branch=main&style=flat-square&logo=githubactions&logoColor=white&label=Build" alt="Actions Status" /></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square" alt="License: MIT" /></a>
-  <img src="https://img.shields.io/badge/Architecture-100%25_Serverless-10b981?style=flat-square" alt="100% Serverless" />
-  <img src="https://img.shields.io/badge/Security-Client--Side_Zero--Trust-darkgreen?style=flat-square" alt="Zero-Trust" />
-  <img src="https://img.shields.io/badge/Dependencies-Zero_External_Runtime-informational?style=flat-square" alt="Zero Dependencies" />
+  <a href="https://github.com/waw666waw666/fork-auto-sync/actions/workflows/sync.yml"><img src="https://img.shields.io/github/actions/workflow/status/waw666waw666/fork-auto-sync/sync.yml?branch=main&style=flat-square&logo=githubactions&logoColor=white&label=%E6%9E%84%E5%BB%BA%E7%8A%B6%E6%80%81" alt="构建状态" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/%E5%BC%80%E6%BA%90%E5%8D%8F%E8%AE%AE-MIT-blue.svg?style=flat-square" alt="开源协议: MIT" /></a>
+  <img src="https://img.shields.io/badge/%E6%9E%B6%E6%9E%84-100%25_%E6%97%A0%E6%9C%8D%E5%8A%A1%E5%99%A8-10b981?style=flat-square" alt="100% 无服务器" />
+  <img src="https://img.shields.io/badge/%E5%AE%89%E5%85%A8%E6%A8%A1%E5%9E%8B-%E5%AE%A2%E6%88%B7%E7%AB%AF%E9%9B%B6%E4%BF%A1%E4%BB%BB-darkgreen?style=flat-square" alt="客户端零信任" />
+  <img src="https://img.shields.io/badge/%E8%BF%90%E8%A1%8C%E4%BE%9D%E8%B5%96-%E9%9B%B6%E5%A4%96%E9%83%A8%E6%9C%8D%E5%8A%A1-informational?style=flat-square" alt="零外部依赖" />
 </p>
 
 <p align="center">
-  Continuous, automated upstream synchronization engine and visual operation console for GitHub forked repositories.<br />
-  Operates on 100% serverless infrastructure, requiring zero server maintenance, zero local compute resources, and zero third-party token exposure.
+  持续、全自动的 GitHub Fork 仓库上游同步与可视化运维工作台。<br />
+  完全基于 Serverless 基础设施运行，无需维护物理服务器，本地电脑零计算负载，杜绝第三方凭证泄露风险。
 </p>
 
 <p align="center">
-  <a href="#overview">Overview</a> •
-  <a href="#user-interface">User Interface</a> •
-  <a href="#system-architecture">System Architecture</a> •
-  <a href="#core-capabilities">Core Capabilities</a> •
-  <a href="#deployment-guide">Deployment Guide</a> •
-  <a href="#configuration-specification">Configuration</a> •
-  <a href="#security-and-data-privacy-model">Security & Privacy</a> •
-  <a href="#security-cautions-and-disclaimer">Security & Disclaimer</a> •
-  <a href="#technical-faq">FAQ</a> •
-  <a href="#license">License</a>
+  <a href="#概述">概述</a> •
+  <a href="#系统界面">系统界面</a> •
+  <a href="#系统架构">系统架构</a> •
+  <a href="#核心能力">核心能力</a> •
+  <a href="#部署指南">部署指南</a> •
+  <a href="#配置规范">配置规范</a> •
+  <a href="#安全与数据隐私模型">安全与隐私</a> •
+  <a href="#安全注意事项与免责声明">安全与免责声明</a> •
+  <a href="#技术常见问题">FAQ</a> •
+  <a href="#开源协议">开源协议</a>
 </p>
 
 ---
 
 </div>
 
-## Overview
+## 概述
 
-ForkSync Hub is an open-source, serverless management solution engineered to solve upstream drift across GitHub forked repositories.
+ForkSync Hub 是专为解决 GitHub Fork 仓库代码落后（Upstream Drift）而设计的开源云端自动化运维方案。
 
-### Background
+### 背景分析
 
-Maintaining synchronization across dozens or hundreds of forked repositories presents substantial operational friction:
-* **Manual Overhead**: Upstream changes necessitate visiting individual repository pages on GitHub to execute manual merge operations.
-* **Local Burden**: Running local cron daemons or background scripts consumes local hardware resources, risks Git workspace pollution, and creates unmonitored local conflicts.
-* **Security Deficits of External SaaS**: Third-party synchronization services require transmitting personal access tokens with write permissions to unverified remote servers, introducing severe credential leakage risks.
+在管理多个或大批量的 Fork 项目时，开发者通常面临以下运维成本：
+* **人工操作繁琐**：每次上游更新均需手动逐个打开仓库网页执行 `Sync fork`。
+* **本地维护负担**：依赖本地常驻进程或定时脚本容易占用计算资源，且存在 Git 本地分支脏污与冲突隐患。
+* **第三方 SaaS 安全隐患**：外部同步服务往往要求提交包含仓库写权限的个人访问令牌（PAT）至未经验证的第三方服务器，带来重大安全风险。
 
-### The Solution
+### 解决方案
 
-ForkSync Hub unifies a client-side, zero-trust Single Page Application (hosted on GitHub Pages) with an automated container execution pipeline (running on GitHub Actions). The system operates directly against GitHub's official REST API over HTTPS, delivering automated tracking, conflict preservation, and real-time scheduling controls without external infrastructure requirements.
-
----
-
-## User Interface
-
-### Main Dashboard
-
-The primary console provides centralized visibility into repository health, tracking branches, release versions, upstream authorship, and synchronization statuses.
-
-<p align="center">
-  <img src="docs/images/dashboard.png" alt="ForkSync Hub Web Dashboard" width="900" />
-</p>
-
-### Cloud Schedule & Rule Settings
-
-The settings panel enables modifying workflow execution intervals and repository exclusion lists via direct GitHub API commits, eliminating command-line intervention.
-
-<p align="center">
-  <img src="docs/images/settings.png" alt="ForkSync Hub Cloud Schedule and Rule Configuration Modal" width="900" />
-</p>
+ForkSync Hub 将部署在 GitHub Pages 上的客户端零信任单页应用（SPA）与运行于 GitHub Actions 的自动化容器流水线整合。系统直接通过 HTTPS 协议与 GitHub 官方 REST API 通讯，实现全自动追踪、冲突安全保护与即时调度控制，全程无需额外部署任何后端或中转服务。
 
 ---
 
-## System Architecture
+## 系统界面
 
-The following diagram illustrates the unidirectional data flow and zero-trust boundary separating client credentials from GitHub cloud execution:
+### 监控主仪表盘
+
+集中呈现受控 Fork 仓库的整体健康度、跟踪分支、代码版本（Release Tag）、上游来源及最新同步时间戳。
+
+<p align="center">
+  <img src="docs/images/dashboard.png" alt="ForkSync Hub 主控制台界面" width="900" />
+</p>
+
+### 云端调度与规则设置
+
+支持在 Web 界面中直接调整 Actions 定时触发周期及黑白名单排除规则，修改通过 GitHub API 原生提交生效，免除命令行操作。
+
+<p align="center">
+  <img src="docs/images/settings.png" alt="ForkSync Hub 调度与规则设置弹窗" width="900" />
+</p>
+
+---
+
+## 系统架构
+
+下图展示了系统单向数据流向及客户端凭证与云端执行之间的零信任边界：
 
 ```mermaid
 flowchart TD
-    subgraph Client ["Client Tier (GitHub Pages Static Host)"]
-        Dashboard["Web Dashboard (Obsidian Dark Theme)"]
-        LocalStorage[("Browser Local Storage\n(Token Preserved Locally Only)")]
+    subgraph Client ["客户端层 (GitHub Pages 静态托管)"]
+        Dashboard["Web 仪表盘 (深色工程界面)"]
+        LocalStorage[("浏览器本地存储\n(Token 严格留存在本地)")]
         Dashboard <--> LocalStorage
     end
 
-    subgraph GitHub ["GitHub Infrastructure Tier (Official API & Runners)"]
+    subgraph GitHub ["GitHub 官方云基础设施层 (官方 API 与运行环境)"]
         RESTAPI["GitHub REST API (v2022-11-28)"]
-        WorkflowEngine["GitHub Actions Runner (Ubuntu Container)"]
-        ForkRepos["Target Forked Repositories"]
-        UpstreamRepos["Upstream Source Repositories"]
+        WorkflowEngine["GitHub Actions 运行容器 (Ubuntu 环境)"]
+        ForkRepos["目标 Fork 仓库集群"]
+        UpstreamRepos["上游原始母项目"]
     end
 
-    Dashboard -- "1. Authenticated API queries & dispatches" --> RESTAPI
-    RESTAPI -- "2. Trigger scheduled cron or manual workflow" --> WorkflowEngine
-    WorkflowEngine -- "3. Fast-forward merge upstream branches" --> ForkRepos
-    WorkflowEngine -- "4. Query commit state & upstream availability" --> UpstreamRepos
-    Dashboard -- "Client-side direct merge-upstream invocation" --> ForkRepos
+    Dashboard -- "1. 鉴权查询与触发调度" --> RESTAPI
+    RESTAPI -- "2. 唤醒定时或按需同步流水线" --> WorkflowEngine
+    WorkflowEngine -- "3. Fast-forward 合并上游分支最新提交" --> ForkRepos
+    WorkflowEngine -- "4. 检查上游提交状态与母库可用性" --> UpstreamRepos
+    Dashboard -- "客户端单仓直接 merge-upstream 调用" --> ForkRepos
 ```
 
 ---
 
-## Core Capabilities
+## 核心能力
 
-| Capability | Specification |
+| 能力项 | 详细规范 |
 | :--- | :--- |
-| **Visual Management Dashboard** | Engineering-grade Obsidian dark interface (`#0b0f19`) displaying tracking branches, release tags, upstream status, and last synced timestamps in real time. |
-| **Client-Side Zero-Trust Model** | Personal Access Tokens (PAT) are stored solely within client-side browser storage and communicate exclusively with `https://api.github.com`. No relay or proxy servers are utilized. |
-| **Dynamic Schedule Control** | Interactive selection of synchronization intervals (e.g., Every 2 hours, Every 6 hours, Twice daily, Daily at 09:00 UTC+8). Settings are committed directly to `.github/workflows/sync.yml`. |
-| **Conflict Shield & Preservation** | Non-destructive merging strictly rejects conflicting branches (HTTP 409) to guarantee personal custom commits are never overwritten or force-pushed. |
-| **Upstream Deletion Safeguard** | Automated verification of upstream repository status. If an upstream repository is deleted or made private (HTTP 404), the system locks synchronization to preserve the local fork as an immutable independent archive. |
-| **Dual-Track Execution Pipeline** | **Direct Merge**: Client-side single-repository merge via GitHub's `merge-upstream` endpoint with real-time streaming execution logs.<br/>**Cloud Batch**: Workflow dispatch triggering GitHub Actions runner with status polling and runtime duration calculation. |
-| **Granular Rule Filtering** | Configurable repository filtering via `config.json` supporting targeted inclusion and explicit exclusion to protect customized branches. |
-| **Rate-Limit Safe Concurrency** | Throttled batch processing and per-repository cool-down intervals shield the user account against GitHub secondary rate limit triggers. |
-| **Responsive Design & Accessibility** | Cross-platform layout optimization across desktop, tablet, and mobile devices with scroll locking, single scroll containers, and keyboard navigation. |
+| **可视化运维面板** | 采用 Obsidian 深色工程风格（`#0b0f19`），实时展示跟踪分支、发布版本、上游作者及同步时间戳。 |
+| **客户端零信任安全模型** | 个人访问令牌（PAT）仅留存在当前浏览器存储中，直接面向 `https://api.github.com` 通讯，绝无任何中间转发服务器。 |
+| **云端调度动态配置** | 支持在 Web 界面直观切换同步周期（每 2 小时、每 6 小时、每日 2 次、每日 09:00 UTC+8），直接提交写入 `.github/workflows/sync.yml`。 |
+| **代码冲突安全熔断** | 严格基于非破坏性合并逻辑，若检测到本地私有改动与上游代码冲突（HTTP 409），自动放弃合并并安全保护，绝不强行覆盖。 |
+| **上游删库与注销防护** | 自动向上游发起存活检测。若原作者已删库或注销账号（HTTP 404），系统自动锁定该仓库为「上游已删 · 绝版镜像」，防止破坏性误报。 |
+| **双轨同步执行模式** | **即时单仓合并**：在卡片端直接调用 GitHub `merge-upstream` 接口，毫秒级合并并输出控制台终端日志。<br/>**全量云端调度**：一键唤醒 GitHub Actions 批量执行，配合轮询监听与耗时统计。 |
+| **细粒度黑白名单过滤** | 支持通过 `config.json` 声明排除名单与指定名单，保护存在自定义改动的分支不被强行同步。 |
+| **API 速率平滑缓冲** | 受控分批并发查询，仓库间加入请求冷却退避间隔，杜绝突发请求触发 GitHub 二级限流（Secondary Rate Limit）。 |
+| **全终端响应式与可访问性** | 深度适配桌面、平板与移动端屏幕，杜绝背景穿透滚动与双滚动条，提供键盘快捷键（`/` 快速聚焦搜索，`Esc` 退出浮层）。 |
 
 ---
 
-## Deployment Guide
+## 部署指南
 
-Deployment requires approximately 60 seconds and utilizes GitHub's native free tier:
+整体部署过程约需 60 秒，完全依托 GitHub 官方提供的免费配额：
 
-### Step 1: Fork the Repository
-Click the **Fork** button at the top right of this repository to create an independent copy under your GitHub personal or organizational account.
+### 第一步：Fork 本仓库
+点击本页面右上角的 **Fork** 按钮，将仓库复制至你的个人或组织 GitHub 账号下。
 
-### Step 2: Configure the Synchronization Secret
-1. Navigate to GitHub [Personal Access Tokens (Classic)](https://github.com/settings/tokens).
-2. Generate a token with the following scopes:
-   * `repo` (Full repository access for public and private repositories)
-   * `workflow` (Required for updating workflow definition files and triggering dispatches)
-3. In your forked repository, go to **Settings** → **Secrets and variables** → **Actions**.
-4. Click **New repository secret**:
+### 第二步：配置工作流密钥
+1. 访问 GitHub [Personal Access Tokens (Classic)](https://github.com/settings/tokens) 页面。
+2. 创建新令牌，并勾选以下必要作用域：
+   * `repo`（完整管理公有与私有仓库）
+   * `workflow`（更新工作流定义文件与调用 Actions 调度）
+3. 进入你 Fork 出的仓库主页，点击 **Settings** → **Secrets and variables** → **Actions**。
+4. 点击 **New repository secret**：
    * **Name**: `SYNC_TOKEN`
-   * **Secret**: Paste the Personal Access Token generated above.
+   * **Secret**: 粘贴上述生成的个人访问令牌。
 
-### Step 3: Enable GitHub Pages
-1. In your forked repository, navigate to **Settings** → **Pages**.
-2. Under **Build and deployment** → **Source**, select **GitHub Actions**.
-3. The deployment workflow will automatically publish your console to:
+### 第三步：开启 GitHub Pages 服务
+1. 在仓库中依次进入 **Settings** → **Pages**。
+2. 在 **Build and deployment** 下的 **Source** 项中，选择 **GitHub Actions**。
+3. 内置流水线将自动编译并发布控制台至专属域名：
    ```
-   https://<your-username>.github.io/fork-auto-sync/
+   https://<你的用户名>.github.io/fork-auto-sync/
    ```
-4. Access the URL, input your token to unlock the console, and initiate management.
+4. 打开该链接，输入令牌解锁后即可开始使用。
 
 ---
 
-## Configuration Specification
+## 配置规范
 
-Repository synchronization behaviors can be configured through the web interface or by directly committing to `config.json`:
+仓库同步策略既可在 Web 界面弹窗中操作，也可通过直接编辑仓库根目录下的 `config.json` 实现：
 
 ```json
 {
@@ -165,76 +165,76 @@ Repository synchronization behaviors can be configured through the web interface
 }
 ```
 
-### Parameter Reference
+### 参数定义
 
-* `exclude` (`string[]`): Array of repository names (`repo`) or full names (`owner/repo`) to exclude from synchronization. Repositories listed here will remain untouched.
-* `only` (`string[]`): Array of repository identifiers. When populated, synchronization will execute exclusively for the specified repositories.
-
----
-
-## Security and Data Privacy Model
-
-ForkSync Hub operates under strict security and data governance standards:
-
-1. **Zero External Data Transmission**: All network traffic occurs exclusively between the user's browser and `https://api.github.com`.
-2. **Ephemeral Runtime**: The GitHub Actions runner executes within an isolated Ubuntu virtual environment, discarding all temporary data upon job termination.
-3. **Safe Merge Strategy**: When upstream commits produce merge conflicts (HTTP 409), the system halts synchronization for the conflicting repository and reports the status without overwriting existing code.
-4. **404 Archive Protection**: When upstream deletion occurs, the synchronization runner safely suspends operations, preventing downstream error propagation and preserving the fork.
+* `exclude` (`string[]`): 声明不参与同步的仓库名称（`repo`）或全路径（`owner/repo`）。列表中的仓库将保持静止，绝不被更新覆盖。
+* `only` (`string[]`): （可选）仅同步列表内声明的仓库。配置后系统将忽略其他未列出的仓库。
 
 ---
 
-## Security Cautions & Disclaimer
+## 安全与数据隐私模型
 
-### ⚠️ Security Cautions (Mandatory Compliance)
+系统遵循严谨的工程安全准则：
 
-1. **Never Publicize or Expose Your Personal Access Token (PAT)**:
-   * A GitHub Token grants direct API authorization equivalent to (or exceeding) account password credentials. **Never** transmit your token to third-party services, chat platforms, public screenshots, or commit it into public or private Git repositories.
-   * **Only use tokens in two trusted environments**:
-     * ① Inputted into your self-hosted browser dashboard verifying the official Pages address (stored exclusively within local `localStorage`, zero upload);
-     * ② Saved inside your own forked repository under `Settings -> Secrets and variables -> Actions` (encrypted by GitHub's official Libsodium asymmetric encryption).
-2. **Principle of Least Privilege (Fine-Grained Tokens Recommended)**:
-   * We strongly recommend generating GitHub **Fine-Grained Personal Access Tokens** with repository access restricted strictly to your required forks and permissions limited to `Contents: Read and write`. Avoid classic tokens with unbounded global scopes.
-3. **Session Eviction on Shared Hardware**:
-   * If accessing the web console from a non-personal workstation, always click "Lock & Exit" to immediately purge local credentials before disconnecting.
-
-### 📜 Disclaimer
-
-1. **Open Source & Provided "AS IS"**: This project is provided as a free, open-source client-side and native workflow automation tool under the [MIT License](LICENSE), without warranty of any kind, express or implied.
-2. **User Credential Responsibility**: The user assumes complete responsibility for the generation, management, secure storage, and revocation of their GitHub Personal Access Tokens. The project authors and contributors accept no liability for any credential compromises, account suspensions, unauthorized repository mutations, or data loss resulting from malware on user machines, token mismanagement, or improper operational handling.
-3. **Branch Merging Risks**: While automated safety mechanisms (including conflict shields and 404 dead-upstream archival locks) are enforced, users remain responsible for maintaining backups of critical repositories and private branches.
+1. **零外部数据流转**：除 GitHub 官方 API 接口外，系统不与任何第三方域名产生网络交互。
+2. **瞬态运行环境**：GitHub Actions 流水线运行于完全隔离的 Ubuntu 虚拟环境中，作业结束后销毁临时运行数据。
+3. **合并保护机制**：遇代码冲突（HTTP 409）时，系统自动跳过该仓库的合并，严禁强制覆盖（`--force`），并在界面提供一键直达的 Web Diff 对比链接。
+4. **404 孤本保护机制**：遇上游母库不存在时自动安全挂起，保护唯一代码备份完好。
 
 ---
 
-## Technical FAQ
+## 安全注意事项与免责声明
+
+### ⚠️ 安全注意事项（必须遵守）
+
+1. **切勿公开或外泄个人访问令牌（PAT）**：
+   * GitHub Token 拥有直接操作账号资产的高级权限。**严禁**将 Token 发送给任何第三方、聊天群组、截图公开，或提交（Commit）到任何公开/私有 Git 仓库代码中。
+   * **仅在两个官方可信环境中使用**：
+     * ① 本机浏览器地址栏确认指向自身 Pages 页面时输入（仅保存在物理本机 `localStorage`，零上传、零中转）；
+     * ② 自身 Fork 仓库后台的 `Settings -> Secrets and variables -> Actions`（由 GitHub 官方 Libsodium 椭圆曲线非对称强加密保护）。
+2. **最小权限原则（推荐使用细粒度 Token）**：
+   * 强烈建议创建 GitHub **Fine-Grained Personal Access Tokens**，仅对需要自动同步的特定 Fork 仓库授权 `Contents: Read and write`，避免使用拥有全权全局权限的 Classic Token。
+3. **公共设备使用完毕请立即退出**：
+   * 若在公共电脑或他人设备上临时调试，离开前务必点击页面右上角「退出并锁定」，彻底清除设备本地存储中的临时凭据。
+
+### 📜 免责声明（Disclaimer）
+
+1. **开源性质与原样提供**：本项目为一个开源、免费的纯客户端与原生工作流辅助工具，依据 [MIT 许可证](LICENSE) 按“原样”（AS IS）提供，不包含任何明示或暗示的担保。
+2. **凭证保管与操作责任**：使用者对其 GitHub 个人访问令牌（PAT）的生成、配置、存储与销毁承担全部安全责任。因使用者自身电脑环境感染木马病毒、Token 误提交公开仓库、泄露给第三方或个人误操作导致的任何账号异常、数据篡改或损失，本项目及其贡献者概不承担任何直接或间接法律责任。
+3. **代码合并风险自负**：本工具调用 GitHub 官方 `merge-upstream` API 进行非破坏性合并。尽管系统内置了冲突熔断与母库 404 绝版保全机制，使用者仍应对其重要分支、私有提交与数据做好独立备份。
+
+---
+
+## 技术常见问题
 
 <details>
-<summary><b>Is there any operational cost associated with this tool?</b></summary>
-No. The system utilizes GitHub Pages and GitHub Actions, both of which are free for public repositories. For private repositories, standard GitHub monthly Actions allotments apply (typically 2,000+ free minutes per month).
+<summary><b>使用本项目会产生费用吗？</b></summary>
+不会。对于公开仓库，GitHub Actions 与 GitHub Pages 完全免费。即便对于私有仓库，GitHub 账号每月均附带充足的免费 Actions 运行分钟数（通常为 2,000+ 分钟/月），完全覆盖正常同步需求。
 </details>
 
 <details>
-<summary><b>Why is the <code>workflow</code> permission scope required?</b></summary>
-GitHub security policies enforce the <code>workflow</code> scope whenever an authenticated entity modifies workflow definitions (such as updating scheduled cron expressions in <code>.github/workflows/sync.yml</code>) or dispatches workflow runs. The credential remains strictly within client storage.
+<summary><b>为什么访问令牌必须包含 <code>workflow</code> 权限？</b></summary>
+GitHub 平台安全规则规定：凡修改 <code>.github/workflows/*.yml</code> 文件（如在 Web 界面变更定时频率）或手动触发 dispatches 任务，均必须持有 <code>workflow</code> 作用域。令牌仅留存于本地浏览器，安全性受端到端加密保护。
 </details>
 
 <details>
-<summary><b>How are merge conflicts resolved?</b></summary>
-The synchronization engine never performs forced pushes (<code>--force</code>). Upon encountering an HTTP 409 conflict response from the GitHub API, execution for that repository is safely skipped, and a visual conflict indicator is rendered on the dashboard with a direct link to GitHub's web diff interface.
+<summary><b>发生代码冲突时系统如何处理？</b></summary>
+同步引擎严格遵循非破坏性合并策略。若检测到 HTTP 409 冲突响应，系统立即中止当前仓库的合并动作，在界面标注冲突警告标签，并提供原厂 GitHub 对比视图链接，绝不覆写用户分支。
 </details>
 
 <details>
-<summary><b>Are private forked repositories supported?</b></summary>
-Yes. Provided the Personal Access Token includes the <code>repo</code> scope, all private forked repositories will be indexed and managed within the authenticated session.
+<summary><b>系统是否支持私有 Fork 仓库？</b></summary>
+支持。只要生成的访问令牌具备 <code>repo</code> 权限，你名下的私有 Fork 仓库均会在鉴权通过后正常呈现与同步。
 </details>
 
 ---
 
-## Contributing
+## 贡献指南
 
-Contributions, issues, and feature proposals are welcomed through GitHub's standard pull request and issue workflows. Please review existing discussions before submitting new issues.
+欢迎通过 GitHub 标准的 Pull Request 与 Issue 流程提交改进建议或缺陷报告。提交前请检索现有讨论以避免重复。
 
 ---
 
-## License
+## 开源协议
 
-This project is licensed under the [MIT License](LICENSE).
+本项目基于 [MIT 许可证](LICENSE) 发布。

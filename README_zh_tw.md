@@ -5,8 +5,8 @@
 **全自動 GitHub Fork 專案雲端同步引擎與互動式 Web 控制台**
 
 <p align="center">
-  <a href="README.md">English</a> · 
-  <a href="README_zh.md">简体中文</a> · 
+  <a href="README.md">简体中文</a> · 
+  <a href="README_en.md">English</a> · 
   <b>繁體中文</b> · 
   <a href="README_ja.md">日本語</a>
 </p>

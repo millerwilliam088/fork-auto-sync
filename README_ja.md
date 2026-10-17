@@ -5,8 +5,8 @@
 **GitHub Fork リポジトリのクラウド自動同期エンジン & 運用ダッシュボード**
 
 <p align="center">
-  <a href="README.md">English</a> · 
-  <a href="README_zh.md">简体中文</a> · 
+  <a href="README.md">简体中文</a> · 
+  <a href="README_en.md">English</a> · 
   <a href="README_zh_tw.md">繁體中文</a> · 
   <b>日本語</b>
 </p>
