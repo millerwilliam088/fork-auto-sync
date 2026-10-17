@@ -753,10 +753,16 @@
                 <span>自动同步</span>
               </label>
 
-              <button onclick="syncSingleRepo('${repo.full_name}', '${repo.branch || 'main'}')" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white flex items-center space-x-1.5 transition shadow-sm">
-                <i class="fa-solid fa-arrows-rotate text-[11px]"></i>
-                <span>立即同步</span>
-              </button>
+              ${isUpstreamDeleted
+                ? `<button onclick="syncSingleRepo('${repo.full_name}', '${repo.branch || 'main'}')" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-dark-700 hover:bg-dark-600 text-gray-300 border border-gray-600 flex items-center space-x-1.5 transition" title="上游母库已删，点击可检测详情">
+                     <i class="fa-solid fa-box-archive text-[11px] text-sky-400"></i>
+                     <span>检查上游</span>
+                   </button>`
+                : `<button onclick="syncSingleRepo('${repo.full_name}', '${repo.branch || 'main'}')" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white flex items-center space-x-1.5 transition shadow-sm">
+                     <i class="fa-solid fa-arrows-rotate text-[11px]"></i>
+                     <span>立即同步</span>
+                   </button>`
+              }
             </div>
           </div>
         `;
@@ -1013,6 +1019,14 @@
 
       document.getElementById('btn-lock-session').addEventListener('click', clearAuth);
 
+      // 点击浮窗遮罩层快速关闭
+      document.getElementById('sync-console-modal').addEventListener('click', (e) => {
+        if (e.target.id === 'sync-console-modal') {
+          document.getElementById('sync-console-modal').classList.add('hidden');
+          document.getElementById('sync-console-modal').classList.remove('flex');
+        }
+      });
+
       document.getElementById('btn-close-console').addEventListener('click', () => {
         document.getElementById('sync-console-modal').classList.add('hidden');
         document.getElementById('sync-console-modal').classList.remove('flex');
@@ -1031,8 +1045,22 @@
       document.getElementById('btn-trigger-cloud').addEventListener('click', triggerCloudSync);
       document.getElementById('input-search').addEventListener('input', renderList);
 
+      // 全局快捷键：'/' 聚焦搜索，'Escape' 关闭浮窗或清空搜索
       document.addEventListener('keydown', (e) => {
-        if (e.key === '/' && document.activeElement.tagName !== 'INPUT') {
+        if (e.key === 'Escape') {
+          const modal = document.getElementById('sync-console-modal');
+          if (!modal.classList.contains('hidden')) {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            return;
+          }
+          const searchInput = document.getElementById('input-search');
+          if (document.activeElement === searchInput) {
+            searchInput.value = '';
+            searchInput.blur();
+            renderList();
+          }
+        } else if (e.key === '/' && document.activeElement.tagName !== 'INPUT') {
           e.preventDefault();
           document.getElementById('input-search').focus();
         }

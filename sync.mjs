@@ -52,9 +52,8 @@ async function getForks() {
     page++;
   }
 
-  // 获取每个 Fork 对应的上游 Parent 信息
-  const detailedForks = [];
-  for (const fork of forks) {
+  // 并行获取每个 Fork 对应的上游 Parent 信息，加速执行
+  const detailedForks = await Promise.all(forks.map(async (fork) => {
     try {
       const detailRes = await fetch(
         `https://api.github.com/repos/${fork.full_name}`,
@@ -69,8 +68,8 @@ async function getForks() {
     } catch {
       fork.parent_full_name = '未知上游';
     }
-    detailedForks.push(fork);
-  }
+    return fork;
+  }));
 
   return detailedForks;
 }
@@ -245,10 +244,12 @@ async function main() {
     const successful = results.filter((r) => r.status === "success" || r.status === "up-to-date").length;
     const skipped = results.filter((r) => r.status === "skipped").length;
     const conflicts = results.filter((r) => r.status === "conflict").length;
+    const upstreamDeleted = results.filter((r) => r.status === "upstream-deleted").length;
     const errors = results.filter((r) => r.status === "error").length;
 
     console.log(`Total Forks: ${results.length}`);
     console.log(`✅ Synced / Up-to-date: ${successful}`);
+    if (upstreamDeleted > 0) console.log(`📦 Standalone Archival Mirrors (Upstream 404): ${upstreamDeleted}`);
     if (skipped > 0) console.log(`⏸️ Skipped: ${skipped}`);
     if (conflicts > 0) console.log(`⚠️ Conflicts: ${conflicts}`);
     if (errors > 0) console.log(`❌ Errors: ${errors}`);
