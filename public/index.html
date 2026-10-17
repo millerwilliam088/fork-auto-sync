@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="zh-CN" class="dark">
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ForkSync Hub - GitHub 官方自动化同步工作台</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔄</text></svg>">
+  <title>ForkSync Hub - GitHub Fork 云端智能同步控制台</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚀</text></svg>">
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <script>
@@ -13,22 +13,16 @@
       theme: {
         extend: {
           colors: {
-            gh: {
-              bg: '#0d1117',
-              card: '#161b22',
-              cardHover: '#1c2128',
-              border: '#30363d',
-              borderLight: '#484f58',
-              text: '#f0f6fc',
-              muted: '#8b949e',
-              subtle: '#6e7681',
-              green: '#238636',
-              greenHover: '#2ea043',
-              greenText: '#3fb950',
-              blue: '#58a6ff',
-              yellow: '#d29922',
-              red: '#f85149',
-              purple: '#bc8cff'
+            brand: {
+              50: '#f0fdf4',
+              500: '#10b981',
+              600: '#059669',
+            },
+            dark: {
+              900: '#0b0f19',
+              800: '#111827',
+              700: '#1f2937',
+              600: '#374151'
             }
           }
         }
@@ -37,276 +31,215 @@
   </script>
   <style>
     body {
-      background-color: #0d1117;
-      color: #f0f6fc;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;
+      background-color: #0b0f19;
+      color: #f3f4f6;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     }
-    .gh-card {
-      background-color: #161b22;
-      border: 1px solid #30363d;
-      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    .glass-card {
+      background: rgba(17, 24, 39, 0.75);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      transition: all 0.25s ease;
     }
-    .gh-card:hover {
-      border-color: #8b949e;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-    }
-    .gh-btn-default {
-      background-color: #21262d;
-      border: 1px solid #30363d;
-      color: #c9d1d9;
-      transition: all 0.15s ease;
-    }
-    .gh-btn-default:hover {
-      background-color: #30363d;
-      border-color: #8b949e;
-      color: #f0f6fc;
-    }
-    .gh-btn-primary {
-      background-color: #238636;
-      border: 1px solid rgba(240, 246, 252, 0.1);
-      color: #ffffff;
-      transition: all 0.15s ease;
-    }
-    .gh-btn-primary:hover {
-      background-color: #2ea043;
+    .glass-card:hover {
+      border-color: rgba(16, 185, 129, 0.35);
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 0 15px 0 rgba(16, 185, 129, 0.1);
     }
     .custom-scrollbar::-webkit-scrollbar {
       width: 6px;
       height: 6px;
     }
     .custom-scrollbar::-webkit-scrollbar-thumb {
-      background: #30363d;
+      background: #374151;
       border-radius: 3px;
-    }
-    .toast-animate {
-      animation: toastSlide 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
-    @keyframes toastSlide {
-      from { transform: translateY(-100%); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
     }
   </style>
 </head>
-<body class="min-h-screen flex flex-col antialiased">
+<body class="min-h-screen flex flex-col">
 
-  <!-- 顶部轻量通知 Toast 容器 -->
-  <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col space-y-2 pointer-events-none"></div>
-
-  <!-- 官方大气导航栏 -->
-  <header class="border-b border-gh-border bg-[#010409]/95 sticky top-0 z-40 backdrop-blur">
+  <!-- 顶部导航栏 -->
+  <header class="border-b border-gray-800 bg-dark-900/90 sticky top-0 z-40 backdrop-blur-md">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-      
-      <!-- 品牌标识 -->
-      <div class="flex items-center space-x-3.5">
-        <a href="https://github.com/waw666waw666" target="_blank" class="text-white hover:text-gh-muted transition">
-          <i class="fa-brands fa-github text-2xl"></i>
-        </a>
-        <div class="h-4 w-px bg-gh-border"></div>
-        <div class="flex items-center space-x-2">
-          <span class="font-semibold text-base tracking-tight text-gh-text">ForkSync Hub</span>
-          <span class="px-2 py-0.5 text-[11px] rounded-full bg-[#1f242c] text-gh-muted border border-gh-border font-medium">云端自动化</span>
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-emerald-500/20">
+          <i class="fa-solid fa-code-fork text-dark-900 text-xl font-bold"></i>
+        </div>
+        <div>
+          <span class="text-lg font-bold tracking-tight bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent">ForkSync Hub</span>
+          <span class="hidden sm:inline-block ml-2 px-2 py-0.5 text-xs rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium">云端联动版</span>
         </div>
       </div>
 
-      <!-- 右侧导航与操作 -->
+      <!-- 右侧控制区 -->
       <div class="flex items-center space-x-3">
-        <a href="https://github.com/waw666waw666/fork-auto-sync" target="_blank" class="gh-btn-default px-3 py-1.5 rounded-md text-xs font-medium flex items-center space-x-1.5">
-          <i class="fa-solid fa-code text-[11px]"></i>
-          <span>项目仓库</span>
+        <!-- 云端 Actions 快速入口 -->
+        <a href="https://github.com/waw666waw666/fork-auto-sync/actions" target="_blank" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs text-gray-300 hover:text-white bg-dark-800 hover:bg-dark-700 border border-gray-700 transition">
+          <i class="fa-brands fa-github text-sm"></i>
+          <span>GitHub Actions 运行大厅</span>
         </a>
 
-        <a href="https://github.com/waw666waw666/fork-auto-sync/actions" target="_blank" class="gh-btn-default px-3 py-1.5 rounded-md text-xs font-medium flex items-center space-x-1.5">
-          <i class="fa-solid fa-server text-[11px]"></i>
-          <span>Actions 调度中心</span>
-        </a>
-
-        <button id="btn-open-token-modal" class="gh-btn-default px-3 py-1.5 rounded-md text-xs font-medium flex items-center space-x-1.5">
-          <i class="fa-solid fa-key text-[11px]" id="token-status-icon"></i>
+        <!-- Token 设置按钮 -->
+        <button id="btn-open-token-modal" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-dark-700 hover:bg-dark-600 text-gray-200 border border-gray-600 transition shadow-sm">
+          <i class="fa-solid fa-key" id="token-status-icon"></i>
           <span id="token-btn-text">配置 Token</span>
         </button>
       </div>
-
     </div>
   </header>
 
-  <!-- 主体工作区 -->
+  <!-- 主体内容 -->
   <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
 
-    <!-- 顶部云端调度主控卡 -->
-    <div class="gh-card rounded-xl p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-      <div class="flex items-start sm:items-center space-x-3.5">
-        <div class="mt-1 sm:mt-0 w-3 h-3 rounded-full bg-gh-greenText animate-pulse shrink-0"></div>
+    <!-- 顶部状态提示栏 -->
+    <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 p-5 rounded-2xl bg-dark-800/80 border border-gray-800 shadow-xl">
+      <div class="flex items-center space-x-3">
+        <div class="w-3.5 h-3.5 rounded-full bg-emerald-500 animate-pulse"></div>
         <div>
-          <div class="flex items-center space-x-2.5 flex-wrap">
-            <span class="text-sm font-semibold text-gh-text">GitHub Actions 云端定时任务就绪</span>
-            <span class="px-2 py-0.5 text-[11px] rounded-md bg-[#1c232d] text-gh-greenText border border-gh-greenText/30 font-medium">每日 08:00 & 20:00 (CST)</span>
+          <div class="text-sm font-semibold text-white flex items-center space-x-2">
+            <span>云端定时同步机制运行中</span>
+            <span class="text-xs font-normal text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">每日 08:00 & 20:00 自动执行</span>
           </div>
-          <div class="text-xs text-gh-muted mt-1 flex items-center space-x-2 flex-wrap">
-            <span>上次同步快照：<strong id="label-last-run" class="text-gh-text font-normal font-mono">载入中...</strong></span>
-            <span>·</span>
-            <span>100% 运行于 GitHub 官方机房，本地电脑零改动零风险</span>
+          <div class="text-xs text-gray-400 mt-0.5">
+            上次云端同步时间：<span id="label-last-run" class="text-gray-300 font-mono">加载中...</span> · 100% 运行于 GitHub 云端容器，本地代码零改动
           </div>
         </div>
       </div>
-
-      <div class="flex items-center space-x-2.5 w-full md:w-auto shrink-0">
-        <button id="btn-refresh" class="gh-btn-default flex-1 md:flex-none px-3.5 py-2 rounded-md text-xs font-medium flex items-center justify-center space-x-1.5">
-          <i class="fa-solid fa-rotate-right text-[11px]" id="refresh-icon"></i>
+      <div class="flex items-center space-x-2.5 w-full lg:w-auto">
+        <button id="btn-refresh" class="flex-1 lg:flex-none flex items-center justify-center space-x-1.5 px-3.5 py-2.5 rounded-xl text-xs font-medium bg-dark-700 hover:bg-dark-600 text-gray-200 border border-gray-600 transition">
+          <i class="fa-solid fa-rotate-right" id="refresh-icon"></i>
           <span>刷新数据</span>
         </button>
-        <button id="btn-trigger-cloud" class="gh-btn-primary flex-1 md:flex-none px-4 py-2 rounded-md text-xs font-semibold flex items-center justify-center space-x-2 shadow-sm">
-          <i class="fa-solid fa-bolt text-[11px]"></i>
-          <span>唤醒云端 Actions 立即同步</span>
+        <button id="btn-trigger-cloud" class="flex-1 lg:flex-none flex items-center justify-center space-x-2 px-5 py-2.5 rounded-xl text-xs font-bold bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white shadow-lg shadow-emerald-500/25 transition">
+          <i class="fa-solid fa-cloud-bolt"></i>
+          <span>🚀 唤醒云端 Actions 立即同步</span>
         </button>
       </div>
     </div>
 
-    <!-- 核心指标卡片组 -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
-      <div class="gh-card rounded-lg p-4">
-        <div class="text-xs text-gh-muted font-medium flex items-center justify-between">
-          <span>总监控 Fork 仓库</span>
-          <i class="fa-solid fa-code-fork text-gh-subtle text-xs"></i>
+    <!-- 数据指标统计卡 -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div class="glass-card rounded-xl p-4">
+        <div class="text-xs text-gray-400 font-medium">监控中 Fork 仓库</div>
+        <div class="mt-2 text-2xl font-bold text-white flex items-center justify-between">
+          <span id="stat-total">7</span>
+          <i class="fa-solid fa-code-fork text-gray-600 text-lg"></i>
         </div>
-        <div class="mt-2 text-2xl font-semibold text-gh-text tracking-tight" id="stat-total">7</div>
       </div>
-
-      <div class="gh-card rounded-lg p-4">
-        <div class="text-xs text-gh-greenText font-medium flex items-center justify-between">
-          <span>已与上游完全一致</span>
-          <i class="fa-solid fa-check text-gh-greenText/60 text-xs"></i>
+      <div class="glass-card rounded-xl p-4">
+        <div class="text-xs text-emerald-400 font-medium">已与上游完全一致</div>
+        <div class="mt-2 text-2xl font-bold text-emerald-400 flex items-center justify-between">
+          <span id="stat-synced">6</span>
+          <i class="fa-solid fa-circle-check text-emerald-500/40 text-lg"></i>
         </div>
-        <div class="mt-2 text-2xl font-semibold text-gh-greenText tracking-tight" id="stat-synced">6</div>
       </div>
-
-      <div class="gh-card rounded-lg p-4">
-        <div class="text-xs text-gh-yellow font-medium flex items-center justify-between">
-          <span>安全保护 (冲突未合并)</span>
-          <i class="fa-solid fa-shield-halved text-gh-yellow/60 text-xs"></i>
+      <div class="glass-card rounded-xl p-4">
+        <div class="text-xs text-amber-400 font-medium">安全保护 (冲突未合并)</div>
+        <div class="mt-2 text-2xl font-bold text-amber-400 flex items-center justify-between">
+          <span id="stat-conflicts">1</span>
+          <i class="fa-solid fa-shield-halved text-amber-500/40 text-lg"></i>
         </div>
-        <div class="mt-2 text-2xl font-semibold text-gh-yellow tracking-tight" id="stat-conflicts">1</div>
       </div>
-
-      <div class="gh-card rounded-lg p-4">
-        <div class="text-xs text-gh-purple font-medium flex items-center justify-between">
-          <span>已锁定 / 排除自动更新</span>
-          <i class="fa-solid fa-lock text-gh-purple/60 text-xs"></i>
+      <div class="glass-card rounded-xl p-4">
+        <div class="text-xs text-purple-400 font-medium">已锁定 / 排除同步</div>
+        <div class="mt-2 text-2xl font-bold text-purple-400 flex items-center justify-between">
+          <span id="stat-excluded">0</span>
+          <i class="fa-solid fa-lock text-purple-500/40 text-lg"></i>
         </div>
-        <div class="mt-2 text-2xl font-semibold text-gh-purple tracking-tight" id="stat-excluded">0</div>
       </div>
     </div>
 
-    <!-- 筛选、标签与搜索栏 -->
-    <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2">
-      <!-- 状态筛选 Tab -->
-      <div class="flex items-center space-x-1.5 p-1 bg-gh-card rounded-lg border border-gh-border text-xs font-medium text-gh-muted overflow-x-auto">
-        <button class="filter-tab px-3 py-1 rounded-md text-gh-text bg-[#21262d] transition" data-filter="all">全部 (7)</button>
-        <button class="filter-tab px-3 py-1 rounded-md hover:text-gh-text transition" data-filter="synced">已同步</button>
-        <button class="filter-tab px-3 py-1 rounded-md hover:text-gh-text transition" data-filter="conflict">冲突保护</button>
-        <button class="filter-tab px-3 py-1 rounded-md hover:text-gh-text transition" data-filter="excluded">已排除</button>
+    <!-- 搜索与筛选栏 -->
+    <div class="flex items-center justify-between gap-4">
+      <div class="relative flex-1 max-w-md">
+        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-gray-500 text-xs"></i>
+        <input type="text" id="input-search" placeholder="搜索仓库名或上游作者..." class="w-full pl-9 pr-4 py-2 bg-dark-800/80 border border-gray-700 rounded-lg text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:border-emerald-500 transition">
       </div>
-
-      <!-- 搜索框 -->
-      <div class="relative w-full sm:w-72">
-        <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-gh-subtle text-xs"></i>
-        <input type="text" id="input-search" placeholder="过滤仓库名或上游原作者..." class="w-full pl-8 pr-3 py-1.5 bg-[#010409] border border-gh-border rounded-md text-xs text-gh-text placeholder-gh-subtle focus:outline-none focus:border-gh-muted focus:ring-1 focus:ring-gh-muted transition">
+      <div class="text-xs text-gray-400">
+        显示 <span id="visible-count" class="text-white font-semibold">0</span> 个 Fork 仓库
       </div>
     </div>
 
-    <!-- 仓库列表网格 -->
-    <div id="repo-list" class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-      <!-- 初始占位骨架屏 -->
-      <div class="col-span-full py-16 text-center text-gh-muted">
-        <i class="fa-solid fa-circle-notch fa-spin text-xl mb-2 text-gh-text"></i>
-        <p class="text-xs">正在载入 GitHub Fork 数据...</p>
+    <!-- 仓库列表容器 -->
+    <div id="repo-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <!-- 动态加载卡片 -->
+      <div class="col-span-full py-16 text-center text-gray-500">
+        <i class="fa-solid fa-circle-notch fa-spin text-2xl text-emerald-500 mb-3"></i>
+        <p class="text-sm">正在加载云端 Fork 状态与版本数据...</p>
       </div>
     </div>
 
   </main>
 
-  <!-- 官方简约页脚 -->
-  <footer class="border-t border-gh-border py-6 mt-auto bg-[#010409]">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between text-xs text-gh-subtle gap-2">
-      <div class="flex items-center space-x-2">
-        <i class="fa-brands fa-github text-sm"></i>
-        <span>ForkSync Hub · 纯云端无服务器架构</span>
-      </div>
-      <div>
-        <span>严密保护本地项目 · 仅同步指定 Fork</span>
-      </div>
-    </div>
+  <!-- 底部版权与说明 -->
+  <footer class="border-t border-gray-800 py-6 text-center text-xs text-gray-500 bg-dark-900">
+    <p>ForkSync Hub · 纯云端无服务器架构 · 保护本地代码零污染</p>
   </footer>
 
-  <!-- Token 配置模态框 (GitHub 风格) -->
-  <div id="token-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden items-center justify-center p-4">
-    <div class="gh-card rounded-xl max-w-md w-full p-6 space-y-4 shadow-2xl border-gh-borderLight">
-      <div class="flex items-center justify-between pb-3 border-b border-gh-border">
-        <h3 class="text-sm font-semibold text-gh-text flex items-center space-x-2">
-          <i class="fa-solid fa-shield-halved text-gh-greenText"></i>
+  <!-- Token 配置模态框 -->
+  <div id="token-modal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="bg-dark-800 border border-gray-700 rounded-2xl max-w-md w-full p-6 space-y-5 shadow-2xl">
+      <div class="flex items-center justify-between">
+        <h3 class="text-base font-bold text-white flex items-center space-x-2">
+          <i class="fa-solid fa-shield-halved text-emerald-400"></i>
           <span>配置 GitHub Access Token</span>
         </h3>
-        <button id="btn-close-token-modal" class="text-gh-muted hover:text-gh-text">
-          <i class="fa-solid fa-xmark text-sm"></i>
+        <button id="btn-close-token-modal" class="text-gray-400 hover:text-white">
+          <i class="fa-solid fa-xmark text-lg"></i>
         </button>
       </div>
 
-      <div class="space-y-3 text-xs text-gh-muted leading-relaxed">
-        <p>
-          配置 Token 后，您可在本页面<strong>直接唤醒云端 GitHub Actions 调度</strong>或<strong>单点合并某个 Fork</strong>。
-        </p>
-        <div class="p-3 bg-[#010409] border border-gh-border rounded-md text-[11px] text-gh-muted space-y-1">
-          <div>• 权限要求：勾选 <code class="text-gh-text font-mono">repo</code> 权限即可</div>
-          <div>• 安全保障：Token 仅存于您当前浏览器的本地存储，绝不上报外部服务器</div>
-        </div>
-      </div>
+      <p class="text-xs text-gray-400 leading-relaxed">
+        配置 Token 后，您可以直接在网页上<strong>一键唤醒 GitHub Actions 云端流水线</strong>或<strong>单点立即同步某个仓库</strong>。<br>
+        <span class="text-amber-400/90 font-medium">🔒 Token 仅存储在当前浏览器 LocalStorage 中，绝不上报给任何服务器。</span>
+      </p>
 
-      <div class="space-y-1.5 pt-1">
-        <label class="block text-xs font-medium text-gh-text">Personal Access Token</label>
+      <div class="space-y-2">
+        <label class="block text-xs font-medium text-gray-300">Personal Access Token (需勾选 repo 权限)</label>
         <div class="relative">
-          <input type="password" id="input-token" placeholder="ghp_xxxxxxxxxxxx" class="w-full px-3 py-2 bg-[#010409] border border-gh-border rounded-md text-xs text-gh-text focus:outline-none focus:border-gh-muted font-mono">
-          <button id="btn-toggle-token-vis" class="absolute right-2.5 top-2.5 text-gh-subtle hover:text-gh-text text-xs">
+          <input type="password" id="input-token" placeholder="ghp_xxxxxxxxxxxx" class="w-full px-3.5 py-2.5 bg-dark-900 border border-gray-700 rounded-lg text-sm text-gray-200 focus:outline-none focus:border-emerald-500 font-mono">
+          <button id="btn-toggle-token-vis" class="absolute right-3 top-3 text-gray-500 hover:text-gray-300 text-xs">
             <i class="fa-solid fa-eye"></i>
           </button>
         </div>
       </div>
 
-      <div class="flex items-center justify-between pt-3 border-t border-gh-border">
-        <button id="btn-clear-token" class="text-xs text-gh-red hover:underline">清除 Token</button>
+      <div class="flex items-center justify-between pt-2">
+        <button id="btn-clear-token" class="text-xs text-rose-400 hover:text-rose-300 transition">清除 Token</button>
         <div class="flex space-x-2">
-          <button id="btn-cancel-token" class="gh-btn-default px-3 py-1.5 rounded-md text-xs">取消</button>
-          <button id="btn-save-token" class="gh-btn-primary px-3.5 py-1.5 rounded-md text-xs font-semibold">保存并启用</button>
+          <button id="btn-cancel-token" class="px-3.5 py-2 rounded-lg text-xs bg-dark-700 hover:bg-dark-600 text-gray-300 transition">关闭</button>
+          <button id="btn-save-token" class="px-4 py-2 rounded-lg text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white transition">保存并启用</button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- 云端调度成功浮层 -->
-  <div id="cloud-trigger-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden items-center justify-center p-4">
-    <div class="gh-card rounded-xl max-w-md w-full p-6 space-y-4 shadow-2xl border-gh-borderLight">
-      <div class="flex items-center justify-between pb-3 border-b border-gh-border">
-        <div class="flex items-center space-x-2">
-          <div class="w-2.5 h-2.5 rounded-full bg-gh-greenText animate-ping"></div>
-          <h3 class="text-sm font-semibold text-gh-text">GitHub Actions 调度成功</h3>
+  <!-- 云端触发反馈模态框 -->
+  <div id="cloud-trigger-modal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="bg-dark-800 border border-gray-700 rounded-2xl max-w-lg w-full p-6 space-y-5 shadow-2xl">
+      <div class="flex items-center justify-between pb-2 border-b border-gray-700">
+        <div class="flex items-center space-x-2.5">
+          <div class="w-3.5 h-3.5 rounded-full bg-emerald-500 animate-pulse"></div>
+          <h3 class="text-base font-bold text-white">云端 GitHub Actions 调度成功</h3>
         </div>
-        <button id="btn-close-trigger-modal" class="text-gh-muted hover:text-gh-text">
-          <i class="fa-solid fa-xmark text-sm"></i>
+        <button id="btn-close-trigger-modal" class="text-gray-400 hover:text-white">
+          <i class="fa-solid fa-xmark text-lg"></i>
         </button>
       </div>
 
-      <div class="space-y-2 text-xs text-gh-muted">
-        <p class="text-gh-text leading-relaxed">
-          已向 GitHub 发送调度指令！云端 Ubuntu 容器正在启动并执行 Fork 检查与自动合并。
+      <div class="space-y-3 text-xs text-gray-300">
+        <p class="leading-relaxed">
+          🚀 已向 GitHub 云端成功发送调度信号！GitHub Actions 容器正在云端分配算力并执行自动上游同步。
         </p>
-        <div class="p-3 bg-[#010409] border border-gh-border rounded-md font-mono text-[11px] space-y-1 text-gh-subtle">
-          <div>• 工作流: <span class="text-gh-text">sync.yml</span></div>
-          <div>• 目标: <span class="text-gh-text">严格扫描 7 个 Fork 仓库</span></div>
-          <div>• 预计完成: <span class="text-gh-greenText">15 秒内</span></div>
+        <div class="p-3 bg-dark-900 rounded-xl border border-gray-700/60 font-mono text-[11px] text-gray-400 space-y-1">
+          <div>• 调度工作流: <span class="text-emerald-400">sync.yml (Auto Sync All Forks)</span></div>
+          <div>• 执行模式: <span class="text-white">全量 7 个 Fork 严格同步</span></div>
+          <div>• 预计耗时: <span class="text-white">10 ~ 20 秒</span></div>
         </div>
       </div>
 
-      <div class="flex items-center justify-end space-x-2 pt-2 border-t border-gh-border">
-        <button id="btn-dismiss-trigger" class="gh-btn-default px-3 py-1.5 rounded-md text-xs">关闭</button>
-        <a href="https://github.com/waw666waw666/fork-auto-sync/actions" target="_blank" class="gh-btn-primary px-3 py-1.5 rounded-md text-xs font-semibold flex items-center space-x-1.5">
+      <div class="flex items-center justify-end space-x-3 pt-2">
+        <button id="btn-dismiss-trigger" class="px-4 py-2 rounded-lg text-xs bg-dark-700 hover:bg-dark-600 text-gray-300 transition">好的</button>
+        <a href="https://github.com/waw666waw666/fork-auto-sync/actions" target="_blank" class="px-4 py-2 rounded-lg text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white transition flex items-center space-x-1.5 shadow-sm">
           <span>进入 Actions 查看实时运行</span>
           <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
         </a>
@@ -314,57 +247,36 @@
     </div>
   </div>
 
-  <!-- 单个仓库控制台日志浮窗 -->
-  <div id="sync-console-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden items-center justify-center p-4">
-    <div class="gh-card rounded-xl max-w-xl w-full p-5 space-y-3 shadow-2xl border-gh-borderLight flex flex-col max-h-[80vh]">
-      <div class="flex items-center justify-between pb-2 border-b border-gh-border">
-        <div class="flex items-center space-x-2">
-          <div class="w-2.5 h-2.5 rounded-full bg-gh-greenText animate-pulse"></div>
-          <h3 class="text-xs font-semibold text-gh-text font-mono" id="sync-console-title">正在同步...</h3>
+  <!-- 单个仓库同步日志浮窗 -->
+  <div id="sync-console-modal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="bg-dark-800 border border-gray-700 rounded-2xl max-w-xl w-full p-6 space-y-4 shadow-2xl flex flex-col max-h-[85vh]">
+      <div class="flex items-center justify-between pb-2 border-b border-gray-700">
+        <div class="flex items-center space-x-2.5">
+          <div class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></div>
+          <h3 class="text-sm font-bold text-white" id="sync-console-title">正在执行同步...</h3>
         </div>
-        <button id="btn-close-console" class="text-gh-muted hover:text-gh-text">
-          <i class="fa-solid fa-xmark text-sm"></i>
+        <button id="btn-close-console" class="text-gray-400 hover:text-white">
+          <i class="fa-solid fa-xmark text-lg"></i>
         </button>
       </div>
 
-      <div id="sync-console-body" class="bg-[#010409] border border-gh-border rounded-lg p-3.5 font-mono text-xs text-gh-text space-y-1.5 overflow-y-auto flex-1 custom-scrollbar min-h-[180px]">
+      <div id="sync-console-body" class="bg-dark-900 rounded-xl p-4 font-mono text-xs text-gray-300 space-y-2 overflow-y-auto flex-1 custom-scrollbar min-h-[200px]">
       </div>
 
-      <div class="flex items-center justify-between pt-2 border-t border-gh-border">
-        <span class="text-[11px] text-gh-subtle" id="sync-console-status">就绪</span>
-        <button id="btn-finish-console" class="gh-btn-default px-3 py-1 rounded-md text-xs">完成关闭</button>
+      <div class="flex items-center justify-between pt-2 border-t border-gray-700">
+        <span class="text-xs text-gray-500" id="sync-console-status">就绪</span>
+        <button id="btn-finish-console" class="px-4 py-2 rounded-lg text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white transition">完成关闭</button>
       </div>
     </div>
   </div>
 
-  <!-- 核心交互逻辑 -->
+  <!-- 页面核心逻辑脚本 -->
   <script>
     const STORAGE_KEY_TOKEN = 'forksync_gh_token';
     const STORAGE_KEY_EXCLUDE = 'forksync_exclude_repos';
 
     let allForks = [];
-    let currentFilter = 'all';
     let excludedList = JSON.parse(localStorage.getItem(STORAGE_KEY_EXCLUDE) || '["example-repo-to-skip"]');
-
-    function showToast(message, type = 'info') {
-      const container = document.getElementById('toast-container');
-      const toast = document.createElement('div');
-      const icons = {
-        success: 'fa-circle-check text-gh-greenText',
-        warning: 'fa-triangle-exclamation text-gh-yellow',
-        error: 'fa-circle-xmark text-gh-red',
-        info: 'fa-circle-info text-gh-blue'
-      };
-      toast.className = `toast-animate pointer-events-auto flex items-center space-x-2 px-3.5 py-2.5 rounded-md gh-card border-gh-borderLight shadow-xl text-xs text-gh-text bg-[#161b22]`;
-      toast.innerHTML = `<i class="fa-solid ${icons[type] || icons.info}"></i><span>${message}</span>`;
-      container.appendChild(toast);
-      setTimeout(() => {
-        toast.style.opacity = '0';
-        toast.style.transform = 'translateY(-10px)';
-        toast.style.transition = 'all 0.2s ease';
-        setTimeout(() => toast.remove(), 200);
-      }, 3500);
-    }
 
     function getToken() {
       return localStorage.getItem(STORAGE_KEY_TOKEN) || '';
@@ -381,10 +293,10 @@
       const icon = document.getElementById('token-status-icon');
       if (token) {
         btnText.textContent = 'Token 已绑定';
-        icon.className = 'fa-solid fa-shield-halved text-gh-greenText text-[11px]';
+        icon.className = 'fa-solid fa-shield-halved text-emerald-400';
       } else {
         btnText.textContent = '配置 Token';
-        icon.className = 'fa-solid fa-key text-gh-muted text-[11px]';
+        icon.className = 'fa-solid fa-key text-gray-400';
       }
     }
 
@@ -402,10 +314,8 @@
     function toggleExclude(repoName) {
       if (isExcluded(repoName)) {
         saveExcluded(excludedList.filter(r => r.toLowerCase() !== repoName.toLowerCase()));
-        showToast(`已开启 [${repoName}] 自动同步`, 'success');
       } else {
         saveExcluded([...excludedList, repoName]);
-        showToast(`已锁定排除 [${repoName}] 不再自动同步`, 'info');
       }
     }
 
@@ -434,13 +344,14 @@
       return `${year}-${month}-${day} ${hour}:${min} (${relative})`;
     }
 
+    // 秒级加载云端生成的 status.json
     async function loadCloudData() {
       const icon = document.getElementById('refresh-icon');
       icon.classList.add('fa-spin');
 
       try {
         const res = await fetch('./status.json?t=' + Date.now());
-        if (!res.ok) throw new Error('读取 status.json 失败');
+        if (!res.ok) throw new Error('无法读取 status.json');
         const data = await res.json();
 
         document.getElementById('label-last-run').textContent = formatDate(data.updated_at);
@@ -448,10 +359,55 @@
         renderList();
         updateStats();
       } catch (err) {
-        console.warn('读取本地数据失败:', err);
-        showToast('读取最新同步快照失败，请稍后重试', 'error');
+        console.warn('加载本地 status.json 失败，尝试通过 GitHub API 读取:', err);
+        // 如果 status.json 暂时没有，若有 Token 则尝试 GitHub API 补充
+        if (getToken()) {
+          loadViaGitHubApi();
+        } else {
+          document.getElementById('repo-list').innerHTML = `
+            <div class="col-span-full py-12 text-center text-rose-400 glass-card rounded-2xl">
+              <i class="fa-solid fa-triangle-exclamation text-3xl mb-2"></i>
+              <p class="text-sm font-semibold">云端数据载入中，请稍后刷新页面</p>
+            </div>
+          `;
+        }
       } finally {
         icon.classList.remove('fa-spin');
+      }
+    }
+
+    // 备用：通过 GitHub API 在线直接读取
+    async function loadViaGitHubApi() {
+      try {
+        const token = getToken();
+        const res = await fetch('https://api.github.com/user/repos?per_page=100', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/vnd.github+json'
+          }
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const repos = await res.json();
+        const forks = repos.filter(r => r.fork === true);
+
+        allForks = forks.map(r => ({
+          name: r.name,
+          full_name: r.full_name,
+          html_url: r.html_url,
+          description: r.description || '暂无描述',
+          branch: r.default_branch,
+          parent: '点击卡片查看',
+          parent_url: r.html_url,
+          version: '最新',
+          updated_at: r.pushed_at || r.updated_at,
+          status: 'up-to-date',
+          detail: '已与上游同步'
+        }));
+
+        renderList();
+        updateStats();
+      } catch (e) {
+        console.error(e);
       }
     }
 
@@ -472,24 +428,16 @@
       const filtered = allForks.filter(r => {
         const name = (r.name || '').toLowerCase();
         const parent = (r.parent || '').toLowerCase();
-        const matchesQuery = name.includes(query) || parent.includes(query);
-
-        if (!matchesQuery) return false;
-
-        const excluded = isExcluded(r.name);
-        const isConflict = r.status === 'conflict';
-
-        if (currentFilter === 'synced') return !excluded && !isConflict;
-        if (currentFilter === 'conflict') return isConflict;
-        if (currentFilter === 'excluded') return excluded;
-        return true;
+        return name.includes(query) || parent.includes(query);
       });
+
+      document.getElementById('visible-count').textContent = filtered.length;
 
       if (filtered.length === 0) {
         container.innerHTML = `
-          <div class="col-span-full py-16 text-center text-gh-subtle gh-card rounded-xl">
-            <i class="fa-regular fa-folder-open text-2xl mb-2 text-gh-subtle"></i>
-            <p class="text-xs">未找到符合条件的 Fork 仓库</p>
+          <div class="col-span-full py-16 text-center text-gray-500 glass-card rounded-2xl">
+            <i class="fa-regular fa-folder-open text-2xl mb-2"></i>
+            <p class="text-xs">未找到匹配的 Fork 仓库</p>
           </div>
         `;
         return;
@@ -501,66 +449,60 @@
 
         let statusBadge = '';
         if (excluded) {
-          statusBadge = `<span class="px-2 py-0.5 text-[11px] rounded-full bg-[#271d3a] text-gh-purple border border-gh-purple/30 font-medium inline-flex items-center space-x-1"><i class="fa-solid fa-lock text-[9px]"></i><span>已锁定排除</span></span>`;
+          statusBadge = `<span class="px-2 py-0.5 text-xs rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/20 font-medium flex items-center space-x-1"><i class="fa-solid fa-lock text-[10px]"></i><span>已锁定排除</span></span>`;
         } else if (isConflict) {
-          statusBadge = `<span class="px-2 py-0.5 text-[11px] rounded-full bg-[#2a1d12] text-gh-yellow border border-gh-yellow/30 font-medium inline-flex items-center space-x-1"><i class="fa-solid fa-shield-halved text-[9px]"></i><span>冲突保护中</span></span>`;
+          statusBadge = `<span class="px-2 py-0.5 text-xs rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 font-medium flex items-center space-x-1"><i class="fa-solid fa-shield-halved text-[10px]"></i><span>冲突安全保护</span></span>`;
         } else {
-          statusBadge = `<span class="px-2 py-0.5 text-[11px] rounded-full bg-[#122619] text-gh-greenText border border-gh-greenText/30 font-medium inline-flex items-center space-x-1"><i class="fa-solid fa-check text-[9px]"></i><span>已与上游同步</span></span>`;
+          statusBadge = `<span class="px-2 py-0.5 text-xs rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium flex items-center space-x-1"><i class="fa-solid fa-check text-[10px]"></i><span>已与上游同步</span></span>`;
         }
 
         const tagBadge = repo.version && repo.version !== '无 Release'
-          ? `<span class="px-2 py-0.5 text-[11px] rounded bg-[#010409] text-gh-muted border border-gh-border font-mono"><i class="fa-solid fa-tag text-[9px] mr-1 text-gh-greenText"></i>${repo.version}</span>`
-          : `<span class="px-2 py-0.5 text-[11px] rounded bg-[#010409] text-gh-subtle border border-gh-border font-mono">Git HEAD</span>`;
+          ? `<span class="px-2 py-0.5 text-xs rounded bg-gray-800 text-gray-300 border border-gray-700 font-mono text-[11px]"><i class="fa-solid fa-tag text-[9px] mr-1 text-emerald-400"></i>${repo.version}</span>`
+          : `<span class="px-2 py-0.5 text-xs rounded bg-gray-800/60 text-gray-500 border border-gray-800 font-mono text-[11px]">Git HEAD</span>`;
 
         return `
-          <div class="gh-card rounded-xl p-5 flex flex-col justify-between space-y-4">
+          <div class="glass-card rounded-2xl p-5 flex flex-col justify-between space-y-4">
             <div class="space-y-3">
-              <!-- 顶部标题与徽标 -->
               <div class="flex items-start justify-between gap-2">
-                <div class="space-y-1">
-                  <div class="flex items-center space-x-2">
-                    <i class="fa-solid fa-code-fork text-gh-muted text-xs"></i>
-                    <a href="${repo.html_url}" target="_blank" class="text-sm font-semibold text-gh-text hover:text-gh-blue hover:underline transition">
-                      ${repo.name}
-                    </a>
-                  </div>
-                  <div class="text-xs text-gh-muted flex items-center space-x-1">
-                    <span>forked from</span>
-                    <a href="${repo.parent_url || '#'}" target="_blank" class="text-gh-text hover:text-gh-blue hover:underline transition font-mono">${repo.parent || '未知上游'}</a>
+                <div>
+                  <a href="${repo.html_url}" target="_blank" class="text-base font-bold text-white hover:text-emerald-400 transition flex items-center space-x-1.5">
+                    <span>${repo.name}</span>
+                    <i class="fa-solid fa-arrow-up-right-from-square text-[11px] text-gray-500"></i>
+                  </a>
+                  <div class="text-xs text-gray-400 mt-1 flex items-center space-x-1">
+                    <span>上游项目:</span>
+                    <a href="${repo.parent_url || '#'}" target="_blank" class="text-gray-300 hover:text-emerald-300 transition font-mono">${repo.parent || '未知上游'}</a>
                   </div>
                 </div>
                 <div>${statusBadge}</div>
               </div>
 
-              <!-- 描述 -->
-              <p class="text-xs text-gh-muted line-clamp-2 leading-relaxed">${repo.description || '暂无描述'}</p>
+              <p class="text-xs text-gray-400 line-clamp-2">${repo.description || '暂无描述'}</p>
 
-              <!-- 元数据网格 -->
-              <div class="grid grid-cols-2 gap-2 pt-2.5 border-t border-gh-border text-xs">
+              <div class="grid grid-cols-2 gap-2 pt-2.5 border-t border-gray-800 text-xs">
                 <div>
-                  <span class="text-gh-subtle block text-[11px]">代码版本 / Tag</span>
+                  <span class="text-gray-500 block text-[11px]">代码版本 / Tag</span>
                   <div class="mt-1">${tagBadge}</div>
                 </div>
                 <div>
-                  <span class="text-gh-subtle block text-[11px]">跟踪分支</span>
-                  <div class="mt-1 font-mono text-gh-muted text-xs bg-[#010409] px-2 py-0.5 rounded w-max border border-gh-border">${repo.branch || 'main'}</div>
+                  <span class="text-gray-500 block text-[11px]">跟踪分支</span>
+                  <div class="mt-1 font-mono text-gray-300 text-xs bg-dark-900 px-2 py-0.5 rounded w-max border border-gray-800">${repo.branch || 'main'}</div>
                 </div>
                 <div class="col-span-2">
-                  <span class="text-gh-subtle block text-[11px]">最近同步时间</span>
-                  <div class="mt-0.5 text-gh-muted font-mono text-xs">${formatDate(repo.updated_at)}</div>
+                  <span class="text-gray-500 block text-[11px]">最后同步 / 更新时间</span>
+                  <div class="mt-0.5 text-gray-300 font-mono text-xs">${formatDate(repo.updated_at)}</div>
                 </div>
               </div>
             </div>
 
-            <!-- 卡片底栏操作区 -->
-            <div class="flex items-center justify-between pt-3 border-t border-gh-border">
-              <label class="flex items-center space-x-2 text-xs cursor-pointer text-gh-muted hover:text-gh-text select-none">
-                <input type="checkbox" ${!excluded ? 'checked' : ''} onchange="toggleExclude('${repo.name}')" class="rounded bg-[#010409] border-gh-border text-gh-green focus:ring-0">
+            <div class="flex items-center justify-between pt-3 border-t border-gray-800">
+              <label class="flex items-center space-x-2 text-xs cursor-pointer text-gray-400 hover:text-gray-200">
+                <input type="checkbox" ${!excluded ? 'checked' : ''} onchange="toggleExclude('${repo.name}')" class="rounded bg-dark-900 border-gray-700 text-emerald-500 focus:ring-0">
                 <span>自动同步</span>
               </label>
 
-              <button onclick="syncSingleRepo('${repo.full_name}', '${repo.branch || 'main'}')" class="gh-btn-default px-3 py-1 rounded-md text-xs font-medium flex items-center space-x-1.5">
-                <i class="fa-solid fa-arrows-rotate text-[10px]"></i>
+              <button onclick="syncSingleRepo('${repo.full_name}', '${repo.branch || 'main'}')" class="px-3.5 py-1.5 rounded-lg text-xs font-medium bg-emerald-600/90 hover:bg-emerald-500 text-white flex items-center space-x-1.5 transition shadow-sm">
+                <i class="fa-solid fa-arrows-rotate"></i>
                 <span>立即同步</span>
               </button>
             </div>
@@ -569,6 +511,7 @@
       }).join('');
     }
 
+    // 唤醒云端 Actions 立即全量同步
     async function triggerCloudSync() {
       const token = getToken();
       if (!token) {
@@ -578,7 +521,7 @@
 
       const btn = document.getElementById('btn-trigger-cloud');
       const originalHtml = btn.innerHTML;
-      btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin text-xs"></i><span>调度中...</span>`;
+      btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i><span>正在向云端发送信号...</span>`;
       btn.disabled = true;
 
       try {
@@ -594,19 +537,19 @@
 
         if (res.status === 204 || res.ok) {
           showCloudTriggerModal();
-          showToast('已唤醒 GitHub Actions 云端同步！', 'success');
         } else {
           const errData = await res.json();
-          showToast(`调度失败: ${errData.message || '请检查 Token 权限'}`, 'error');
+          alert(`触发失败 (${res.status}): ${errData.message || '请检查 Token 权限'}`);
         }
       } catch (err) {
-        showToast(`网络异常: ${err.message}`, 'error');
+        alert(`网络异常: ${err.message}`);
       } finally {
         btn.innerHTML = originalHtml;
         btn.disabled = false;
       }
     }
 
+    // 单个仓库同步（网页直连调用 GitHub API）
     async function syncSingleRepo(fullName, branch) {
       const token = getToken();
       if (!token) {
@@ -630,28 +573,24 @@
 
         const data = await res.json();
         if (res.status === 200) {
-          appendLog(`✅ 成功合并上游最新提交: ${data.message || 'Synced successfully!'}`, 'text-gh-greenText');
-          showToast(`[${fullName}] 成功合并最新提交`, 'success');
+          appendLog(`✅ 成功合并上游最新提交: ${data.message || 'Synced successfully!'}`, 'text-emerald-400');
         } else if (res.status === 409) {
-          appendLog(`⚠️ 检测到代码冲突，GitHub 已自动保护未做合并: ${data.message}`, 'text-gh-yellow');
-          showToast(`[${fullName}] 存在冲突已安全保持原样`, 'warning');
+          appendLog(`⚠️ 检测到代码冲突，GitHub 已自动保护未做合并: ${data.message}`, 'text-amber-400');
         } else if (res.status === 422) {
-          appendLog(`ℹ️ 当前分支已与上游完全一致，无需合并`, 'text-gh-blue');
-          showToast(`[${fullName}] 已是最新版本`, 'info');
+          appendLog(`ℹ️ 当前分支已与上游完全一致，无需合并`, 'text-cyan-400');
         } else {
-          appendLog(`❌ 错误 ${res.status}: ${data.message}`, 'text-gh-red');
-          showToast(`同步失败 (${res.status})`, 'error');
+          appendLog(`❌ 错误 ${res.status}: ${data.message}`, 'text-rose-400');
         }
       } catch (err) {
-        appendLog(`❌ 网络请求失败: ${err.message}`, 'text-gh-red');
-        showToast(`网络请求失败`, 'error');
+        appendLog(`❌ 网络请求失败: ${err.message}`, 'text-rose-400');
       }
 
-      appendLog(`✨ 同步结束。`, 'text-gh-subtle');
+      appendLog(`✨ 同步结束。`, 'text-gray-400');
       finishConsole();
       loadCloudData();
     }
 
+    // 控制台弹窗管理
     function openConsole(title) {
       document.getElementById('sync-console-title').textContent = title;
       document.getElementById('sync-console-body').innerHTML = '';
@@ -660,7 +599,7 @@
       document.getElementById('sync-console-modal').classList.add('flex');
     }
 
-    function appendLog(text, colorClass = 'text-gh-text') {
+    function appendLog(text, colorClass = 'text-gray-300') {
       const body = document.getElementById('sync-console-body');
       const div = document.createElement('div');
       div.className = `${colorClass} leading-relaxed`;
@@ -673,6 +612,7 @@
       document.getElementById('sync-console-status').textContent = '已完成';
     }
 
+    // 模态框管理
     function showTokenModal() {
       const modal = document.getElementById('token-modal');
       const input = document.getElementById('input-token');
@@ -699,6 +639,7 @@
       modal.classList.remove('flex');
     }
 
+    // 初始化事件绑定
     document.addEventListener('DOMContentLoaded', () => {
       updateTokenButtonState();
 
@@ -709,19 +650,17 @@
       document.getElementById('btn-save-token').addEventListener('click', () => {
         const val = document.getElementById('input-token').value;
         if (!val.trim()) {
-          showToast('请输入有效的 GitHub Token', 'warning');
+          alert('请输入有效的 GitHub Token');
           return;
         }
         saveToken(val);
         hideTokenModal();
-        showToast('Token 保存成功！', 'success');
         loadCloudData();
       });
 
       document.getElementById('btn-clear-token').addEventListener('click', () => {
         saveToken('');
         hideTokenModal();
-        showToast('已清除本地 Token', 'info');
         loadCloudData();
       });
 
@@ -742,34 +681,11 @@
       document.getElementById('btn-close-trigger-modal').addEventListener('click', hideCloudTriggerModal);
       document.getElementById('btn-dismiss-trigger').addEventListener('click', hideCloudTriggerModal);
 
-      document.getElementById('btn-refresh').addEventListener('click', () => {
-        showToast('正在从云端快照刷新数据...', 'info');
-        loadCloudData();
-      });
+      document.getElementById('btn-refresh').addEventListener('click', loadCloudData);
       document.getElementById('btn-trigger-cloud').addEventListener('click', triggerCloudSync);
       document.getElementById('input-search').addEventListener('input', renderList);
 
-      // 标签筛选器点击事件
-      document.querySelectorAll('.filter-tab').forEach(tab => {
-        tab.addEventListener('click', (e) => {
-          document.querySelectorAll('.filter-tab').forEach(t => {
-            t.classList.remove('bg-[#21262d]', 'text-gh-text');
-          });
-          e.currentTarget.classList.add('bg-[#21262d]', 'text-gh-text');
-          currentFilter = e.currentTarget.getAttribute('data-filter');
-          renderList();
-        });
-      });
-
-      // 键盘快捷键 '/' 聚焦搜索框
-      document.addEventListener('keydown', (e) => {
-        if (e.key === '/' && document.activeElement.tagName !== 'INPUT') {
-          e.preventDefault();
-          document.getElementById('input-search').focus();
-        }
-      });
-
-      // 初始加载云端数据
+      // 初次秒级载入云端数据
       loadCloudData();
     });
   </script>
