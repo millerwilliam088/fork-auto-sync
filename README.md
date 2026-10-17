@@ -25,6 +25,7 @@
 </p>
 
 <p align="center">
+  <a href="#why-forksync-hub-comparison-matrix">Why ForkSync Hub?</a> •
   <a href="#overview">Overview</a> •
   <a href="#user-interface">User Interface</a> •
   <a href="#system-architecture">System Architecture</a> •
@@ -39,6 +40,21 @@
 ---
 
 </div>
+
+## Why ForkSync Hub? (Comparison Matrix)
+
+| Feature / Dimension | Manual Web Clicking | Local Script / Self-Hosted VPS | Third-Party SaaS Platforms | **ForkSync Hub (This Project)** |
+| :--- | :---: | :---: | :---: | :---: |
+| **Infrastructure Cost** | Free (High manual labor) | Monthly cloud server fees | Paid tiers & quota caps | **100% Serverless (Zero Cost, Pure GitHub)** |
+| **Automation Level** | 0% (Manual click per repo) | Requires self-hosted cron daemons | Automated | **Fully Automated (GitHub Actions Cron)** |
+| **Token Leakage Risk** | Low (Official web session) | Plaintext credentials on VPS disk | **Critical Risk (Token stored on SaaS)** | **Zero-Trust (Local-only + Libsodium Encrypted)** |
+| **Custom Code Shield** | Risk of manual misclick | Force-merge risks code loss | Black-box execution | **Conflict Shield (Never overwrites diverged commits)** |
+| **Dead Upstream Safety**| Upstream 404 breaks UI | Script crashes or errors out | Silent failure | **Archival Shield (Marks upstream 404 as standalone mirror)** |
+| **Visual Dashboard** | Fragmented across repos | Terminal CLI only | Proprietary closed UI | **Zero-Install Web Dashboard (Ready to use)** |
+| **Batch Exclude/Lock** | Not supported | Requires hardcoding arrays | Paid enterprise feature | **One-click Web Toggle & Instant Commit** |
+| **Rate-Limit Resilience** | N/A | Burst calls easily trigger bans | Unknown backoff | **Batch Concurrency + Cool-down Buffering** |
+
+---
 
 ## Overview
 
