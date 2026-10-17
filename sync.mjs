@@ -240,6 +240,20 @@ async function main() {
 
     // 生成 GitHub 网页仪表盘报告
     writeStepSummary(results);
+
+    // 生成供 Web 前端直读的 status.json
+    try {
+      const statusData = {
+        updated_at: new Date().toISOString(),
+        total_forks: results.length,
+        forks: results
+      };
+      if (!fs.existsSync('./public')) fs.mkdirSync('./public', { recursive: true });
+      fs.writeFileSync('./public/status.json', JSON.stringify(statusData, null, 2), 'utf8');
+      console.log("📁 public/status.json updated successfully.");
+    } catch (e) {
+      console.warn("Failed to write public/status.json:", e.message);
+    }
   } catch (err) {
     console.error("Fatal error during sync process:", err);
     process.exit(1);
