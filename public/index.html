@@ -35,11 +35,66 @@
     }
   </script>
   <style>
+    /* 永久保留垂直滚动槽位，彻底消除内容增减或筛选切换时的页面横向抖动跳跃 */
+    html {
+      overflow-y: scroll;
+      scrollbar-gutter: stable;
+    }
     body {
       background-color: #0b0f19;
       color: #f3f4f6;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     }
+
+    /* ======================================================== */
+    /* 全局专属深色统一滚动条（彻底告别系统默认白/灰大粗滚动条） */
+    /* ======================================================== */
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: rgba(75, 85, 99, 0.45) transparent;
+    }
+    ::-webkit-scrollbar {
+      width: 7px;
+      height: 7px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background-color: rgba(75, 85, 99, 0.4);
+      border-radius: 9999px;
+      border: 1px solid transparent;
+      background-clip: padding-box;
+      transition: background-color 0.2s ease;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background-color: rgba(16, 185, 129, 0.7);
+    }
+    ::-webkit-scrollbar-corner {
+      background: transparent;
+    }
+
+    /* 内部可滚动容器极简滚动条 */
+    .custom-scrollbar {
+      scrollbar-width: thin;
+      scrollbar-color: rgba(75, 85, 99, 0.45) transparent;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: rgba(11, 15, 25, 0.5);
+      border-radius: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background-color: rgba(75, 85, 99, 0.5);
+      border-radius: 9999px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background-color: rgba(16, 185, 129, 0.85);
+    }
+
     /* 彻底杜绝鼠标悬浮跳动与晃动，仅允许平滑的边框与颜色过渡 */
     .glass-card {
       background: rgba(17, 24, 39, 0.75);
@@ -83,14 +138,6 @@
     .modal-backdrop {
       overscroll-behavior: contain;
     }
-    .custom-scrollbar::-webkit-scrollbar {
-      width: 6px;
-      height: 6px;
-    }
-    .custom-scrollbar::-webkit-scrollbar-thumb {
-      background: #374151;
-      border-radius: 3px;
-    }
     .toast-slide {
       animation: toastIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
@@ -121,7 +168,7 @@
   <!-- ========================================== -->
   <!-- 门禁层：未解锁时仅展示私密验证面板 (零仓库数据泄露) -->
   <!-- ========================================== -->
-  <div id="auth-lock-screen" class="fixed inset-0 z-50 bg-[#0b0f19] flex items-center justify-center p-4">
+  <div id="auth-lock-screen" class="fixed inset-0 z-50 bg-[#0b0f19] flex items-center justify-center p-4 overflow-y-auto custom-scrollbar">
     <div id="lock-card" class="glass-card rounded-2xl max-w-md w-full p-8 space-y-6 shadow-2xl border-gray-800 text-center relative overflow-hidden">
       <!-- 极简几何图标 -->
       <div class="w-14 h-14 mx-auto rounded-xl bg-dark-800 border border-gray-700 flex items-center justify-center text-emerald-400 text-xl shadow-inner">
@@ -316,7 +363,7 @@
       </div>
 
       <!-- 仓库列表容器 -->
-      <div id="repo-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div id="repo-list" class="grid grid-cols-1 md:grid-cols-2 gap-4 min-h-[380px]">
         <!-- 动态渲染卡片或骨架屏 -->
       </div>
 
@@ -1300,17 +1347,44 @@
       if (filtered.length === 0) {
         if (allForks.length === 0) {
           container.innerHTML = `
-            <div class="col-span-full py-16 text-center text-gray-400 glass-card rounded-2xl space-y-2">
-              <i class="fa-solid fa-code-fork text-3xl text-gray-600 mb-2"></i>
-              <p class="text-sm font-medium text-white">当前 GitHub 账号下暂无 Fork 仓库</p>
-              <p class="text-xs text-gray-500">前往 GitHub Fork 任意感兴趣的项目后，点击上方「刷新」即可自动纳管</p>
+            <div class="col-span-full py-20 min-h-[360px] flex flex-col items-center justify-center text-center text-gray-400 glass-card rounded-2xl space-y-3">
+              <div class="w-14 h-14 rounded-2xl bg-dark-900 border border-gray-700 flex items-center justify-center text-emerald-400 text-2xl shadow-inner mb-1">
+                <i class="fa-solid fa-code-fork"></i>
+              </div>
+              <p class="text-sm font-semibold text-white">当前 GitHub 账号下暂无 Fork 仓库</p>
+              <p class="text-xs text-gray-500 max-w-sm">前往 GitHub Fork 任意感兴趣的开源项目后，点击上方「刷新」即可自动纳管。</p>
+            </div>
+          `;
+        } else if (rawQuery.trim()) {
+          container.innerHTML = `
+            <div class="col-span-full py-20 min-h-[360px] flex flex-col items-center justify-center text-center text-gray-400 glass-card rounded-2xl space-y-3">
+              <div class="w-14 h-14 rounded-2xl bg-dark-900 border border-gray-700 flex items-center justify-center text-gray-500 text-xl shadow-inner mb-1">
+                <i class="fa-solid fa-magnifying-glass"></i>
+              </div>
+              <p class="text-sm font-semibold text-white">未找到匹配 "${escapeHtml(rawQuery.trim())}" 的 Fork 仓库</p>
+              <p class="text-xs text-gray-500">请检查关键词拼写或尝试搜索上游作者名</p>
+              <button onclick="document.getElementById('input-search').value=''; renderList();" class="mt-2 px-3.5 py-1.5 rounded-lg text-xs bg-dark-800 hover:bg-dark-700 text-emerald-400 border border-gray-700 transition">
+                清空搜索关键词
+              </button>
             </div>
           `;
         } else {
+          const filterLabels = {
+            synced: '已是最新',
+            special: '绝版 / 冲突保护',
+            excluded: '已锁定排除'
+          };
+          const curLabel = filterLabels[currentFilter] || '该分类';
           container.innerHTML = `
-            <div class="col-span-full py-16 text-center text-gray-500 glass-card rounded-2xl">
-              <i class="fa-regular fa-folder-open text-2xl mb-2"></i>
-              <p class="text-xs">未找到包含关键词 "${escapeHtml(rawQuery)}" 的 Fork 仓库</p>
+            <div class="col-span-full py-20 min-h-[360px] flex flex-col items-center justify-center text-center text-gray-400 glass-card rounded-2xl space-y-3">
+              <div class="w-14 h-14 rounded-2xl bg-dark-900 border border-gray-700 flex items-center justify-center text-gray-500 text-xl shadow-inner mb-1">
+                <i class="fa-regular fa-folder-open"></i>
+              </div>
+              <p class="text-sm font-semibold text-white">当前【${curLabel}】分类下暂无仓库</p>
+              <p class="text-xs text-gray-500">你的所有 Fork 项目均状态健康，暂无归属于此分类的仓库。</p>
+              <button onclick="setFilter('all')" class="mt-2 px-3.5 py-1.5 rounded-lg text-xs bg-dark-800 hover:bg-dark-700 text-emerald-400 border border-gray-700 transition">
+                查看全部 Fork 仓库
+              </button>
             </div>
           `;
         }
